@@ -1,0 +1,38 @@
+[
+    {
+        "@context": [
+            "https://www.w3.org/2018/credentials/v1"
+        ],
+        "type": [
+            "VerifiablePresentation"
+        ],
+        "verifiableCredential": [
+            {
+                "@context": "https://www.w3.org/2018/credentials/v1",
+                "id": "http://127.0.0.1:5001/universityDID",
+                "type": [
+                    "VerifiableCredential"
+                ],
+                "credentialSubject": {
+                    "id": "did:key:zDnaeTM8W1ZvhFYJSxnT974jhX81GAQaTNd9HZVFawppf8W7j"
+                },
+                "issuer": "did:key:zDnaerMgnPShFVqPHWxd91cdSxjPPDDCp5dhrBtnuwj4aT8o3",
+                "issuanceDate": "2024-04-02T21:18:55Z",
+                "proof": {
+                    "type": "EcdsaSecp256r1Signature2019",
+                    "proofPurpose": "assertionMethod",
+                    "verificationMethod": "did:key:zDnaerMgnPShFVqPHWxd91cdSxjPPDDCp5dhrBtnuwj4aT8o3#zDnaerMgnPShFVqPHWxd91cdSxjPPDDCp5dhrBtnuwj4aT8o3",
+                    "created": "2024-04-02T19:18:55.308Z",
+                    "jws": "eyJhbGciOiJFUzI1NiIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..1Liz8VP-_lAd1SmAj276I9A7lsTt0Pxt_5tEdOL_gv9QePUCDnS3bWErNdDlz4VO3xbk8wlowcfAx25PHxYjfw"
+                }
+            }
+        ],
+        "proof": {
+            "type": "EcdsaSecp256r1Signature2019",
+            "proofPurpose": "authentication",
+            "verificationMethod": "did:key:zDnaeTM8W1ZvhFYJSxnT974jhX81GAQaTNd9HZVFawppf8W7j#zDnaeTM8W1ZvhFYJSxnT974jhX81GAQaTNd9HZVFawppf8W7j",
+            "created": "2024-04-02T19:19:17.329Z",
+            "jws": "eyJhbGciOiJFUzI1NiIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..jLMiyD-GM-ElrJuOAKkm9xSCsAkdTFsw4AG9rto_Eho3KwDns0M8pDrhZaLBOUcfzuAYA7kM_AnuiduZO8Cb4A"
+        }
+    }
+]

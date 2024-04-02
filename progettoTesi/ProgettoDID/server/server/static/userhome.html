@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifiable Credentials dell'Utente</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .vc-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .vc-item {
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .issue-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: #fff;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Le tue Verifiable Credentials</h2>
+<div>
+<p>Inserisci il Tuo DID </p>
+<input type="text" id="mioDID" size="100" oninput="salvaDID()"> </input>
+</div>
+<span style="margin: 0 100px;"></span>
+<div>
+    <button class="issue-btn" onclick="issueVC()">Emetti nuova VC</button>
+</div>
+<div>
+<span style="margin: 0 100px;"></span>
+<a href="/api/downloadVC" id="downloadVC" style = "display: none";>Download VC</a>
+</div>
+<p id="VC" style="display: none;"><p id="VCred"></p></p>
+<span style="margin: 0 100px;"></span> <!-- Aggiungi uno spazio di 10px tra i bottoni -->
+<div>
+<button class="issue-btn" onclick="verifyVC()" id="verifyVC" style ="display : none">Verifica verifiable_credential</button>
+</div>
+<div>
+<p id="result" style="display: none;"></p>
+</div>
+<div>
+<button class="issue-btn" id="VP" style="display: none;" onclick="issueVP()">Realizza VP</button>    
+</div>
+<span style="margin: 0 100px;"></span>
+<div>
+<a href="http://127.0.0.1:5002/downlaodVP" id="downlaodVP" style="display: none">Download Verifiable Presentation</a>
+</div>
+<p id="VParea"></p>
+
+<div>
+<button class="issue-btn" id="VP_verify" style="display: none;" onclick="verifyVP()">Verifica VP</button>
+<p id="VP_verify_area"></p>
+</div>
+
+<script>
+    // Funzione per simulare il caricamento delle VC dell'utente
+   var verifiable_credential
+   var verifiable_presentation
+
+   var valoreGlobale; // Questa è la tua variabile globale
+
+    function salvaDID() {
+    valoreGlobale = document.getElementById('mioDID').value;
+   
+    }
+
+    // Funzione per gestire l'azione del pulsante di issuing
+    async function issueVC() {
+        try {
+    response = await fetch('/api/issueVC', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ did: valoreGlobale })
+    });
+
+    // Verifica che la richiesta sia stata completata con successo
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    let json = await response.json(); // Assicurati di convertire la risposta in JSON
+    verifiable_credential = json
+    document.getElementById('VCred').style.display = "block";
+    document.getElementById('VCred').textContent = JSON.stringify(json); // Mostra il JSON come stringa
+    document.getElementById('VC').style.display = "block";
+    document.getElementById('verifyVC').style.display = "block";
+    document.getElementById('downloadVC').style.display = "block"
+    console.log(json); // Correzione da 'cnosole.log' a 'console.log'
+    } catch (error) {
+    console.error("Errore durante l'emissione del VC:", error);
+    }
+
+    }
+
+    async function verifyVC(vc) {
+    let resp;
+    try {
+        resp = await fetch('http://localhost:5002/verifyVC', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Impostazione dell'header per indicare che il corpo della richiesta è un JSON.
+            },
+            body: JSON.stringify(verifiable_credential) // Converte l'oggetto JavaScript in una stringa JSON.
+        });
+
+        if (!resp.ok) { // Controlla se lo status della risposta non è OK (es. 200-299)
+            throw new Error('Errore nella risposta del server: ' + resp.status);
+        }
+
+        const data = await resp.json(); // Assume che la risposta sia JSON e la converte in un oggetto JavaScript.
+       
+        document.getElementById("result").style = "block"
+        document.getElementById("result").innerText = data["verificationResult"]
+        document.getElementById("VP").style = "block"
+    } catch (error) {
+        console.error("Errore durante la verifica della VC:", error);
+    }
+}
+
+    async function issueVP(){
+    try{
+        
+        resp = await fetch('http://localhost:5002/issueVP', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Impostazione dell'header per indicare che il corpo della richiesta è un JSON.
+            },
+            body: JSON.stringify(verifiable_credential) // Converte l'oggetto JavaScript in una stringa JSON.
+        })
+        if (!response.ok) {
+         throw new Error(`HTTP error! status: ${response.status}`);
+       }
+       const data = await resp.json();
+       verifiable_presentation = data
+     
+       document.getElementById("VParea").innerHTML = JSON.stringify(data)
+       document.getElementById("VP_verify").style = "block"
+       document.getElementById("downlaodVP").style = "block"
+    }catch (error){
+            console.error("Errore durante la realizzazione della VP: ", error)
+        }
+    }
+
+    async function verifyVP(){
+        try{
+        resp = await fetch('http://localhost:5002/validateVP', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Impostazione dell'header per indicare che il corpo della richiesta è un JSON.
+            },
+            body: JSON.stringify(verifiable_presentation) // Converte l'oggetto JavaScript in una stringa JSON.
+        })
+        if (!response.ok) {
+         throw new Error(`HTTP error! status: ${response.status}`);
+       }
+       const data = await resp.json();
+       console.log(data)
+       document.getElementById("VP_verify_area").innerHTML = JSON.stringify(data)
+    }catch (error){
+            console.error("Errore durante la validazione della VP: ", error)
+        }
+    }
+    
+
+    // Carica le VC dell'utente al caricamento della pagina
+    window.onload = function() {
+        loadUserVCs();
+    };
+</script>
+
+</body>
+</html>
