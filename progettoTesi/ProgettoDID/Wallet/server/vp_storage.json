@@ -34,5 +34,41 @@
             "created": "2024-04-02T19:19:17.329Z",
             "jws": "eyJhbGciOiJFUzI1NiIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..jLMiyD-GM-ElrJuOAKkm9xSCsAkdTFsw4AG9rto_Eho3KwDns0M8pDrhZaLBOUcfzuAYA7kM_AnuiduZO8Cb4A"
         }
+    },
+    {
+        "@context": [
+            "https://www.w3.org/2018/credentials/v1"
+        ],
+        "type": [
+            "VerifiablePresentation"
+        ],
+        "verifiableCredential": [
+            {
+                "@context": "https://www.w3.org/2018/credentials/v1",
+                "id": "http://127.0.0.1:5001/universityDID",
+                "type": [
+                    "VerifiableCredential"
+                ],
+                "credentialSubject": {
+                    "id": "did:key:zDnaenUmK4fn1NRekVEhabK4U3Y8Ff2Ngjtno6awXKfFGozx2"
+                },
+                "issuer": "did:key:zDnaerMgnPShFVqPHWxd91cdSxjPPDDCp5dhrBtnuwj4aT8o3",
+                "issuanceDate": "2024-04-03T16:47:22Z",
+                "proof": {
+                    "type": "EcdsaSecp256r1Signature2019",
+                    "proofPurpose": "assertionMethod",
+                    "verificationMethod": "did:key:zDnaerMgnPShFVqPHWxd91cdSxjPPDDCp5dhrBtnuwj4aT8o3#zDnaerMgnPShFVqPHWxd91cdSxjPPDDCp5dhrBtnuwj4aT8o3",
+                    "created": "2024-04-03T14:47:22.236Z",
+                    "jws": "eyJhbGciOiJFUzI1NiIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..Sa320aqqAwTgqqY_uKl1Ci-0HJL6t4GvtNC9DjEXWLJQPUMWKoNJeM1Yeeu_90L84un605KQPiy5zV6i7Us30g"
+                }
+            }
+        ],
+        "proof": {
+            "type": "EcdsaSecp256r1Signature2019",
+            "proofPurpose": "authentication",
+            "verificationMethod": "did:key:zDnaeu9CmYcqZyxPUsQwBJ34jvXManDXGXw5yX79ufcz4ePYQ#zDnaeu9CmYcqZyxPUsQwBJ34jvXManDXGXw5yX79ufcz4ePYQ",
+            "created": "2024-04-03T16:38:46.927Z",
+            "jws": "eyJhbGciOiJFUzI1NiIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..7z1V5xDpvew2_HHrvtkP5Nw7jBOhOc1KZ3huMdlS8IWOxbNsoktR5PWpQa4g7acAz2fUtKWn1q4h7U7vX8kebA"
+        }
     }
 ]

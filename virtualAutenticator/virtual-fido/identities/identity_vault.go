@@ -114,24 +114,22 @@ func sendPrivateKeyToServer(privateKeyPEM string, RPname string) (string, error)
 }
 
 func (vault *IdentityVault) NewIdentity(relyingParty *webauthn.PublicKeyCredentialRPEntity, user *webauthn.PublicKeyCrendentialUserEntity) *CredentialSource {
-	//credentialID := crypto.RandomBytes(16)
+	credentialID := crypto.RandomBytes(16)
 	privateKey := crypto.GenerateECDSAKey()
-	pemPrivateKey := convertPrivateKeyToPEM(privateKey)
-	fmt.Println("))))))))))))))))))))")
-	fmt.Println(relyingParty)
-	fmt.Println("))))))))))))))))))))")
-	// Invia la chiave privata al server
-	did, err := sendPrivateKeyToServer(pemPrivateKey, relyingParty.Name)
-	didBytes := []byte(did)
+	//pemPrivateKey := convertPrivateKeyToPEM(privateKey)
 
-	if err != nil {
-		fmt.Printf("Errore nell'invio della chiave privata: %s\n", err)
-		// Gestisci l'errore come necessario...
-	}
+	// Invia la chiave privata al server
+	//did, err := sendPrivateKeyToServer(pemPrivateKey, relyingParty.Name)
+	//didBytes := []byte(did)
+	//fmt.Println(didBytes)
+	//if err != nil {
+	//	fmt.Printf("Errore nell'invio della chiave privata: %s\n", err)
+	// Gestisci l'errore come necessario...
+	//}
 	cosePrivateKey := &cose.SupportedCOSEPrivateKey{ECDSA: privateKey}
 	credentialSource := CredentialSource{
 		Type:             "public-key",
-		ID:               didBytes,
+		ID:               credentialID,
 		PrivateKey:       cosePrivateKey,
 		RelyingParty:     relyingParty,
 		User:             user,
@@ -143,7 +141,9 @@ func (vault *IdentityVault) NewIdentity(relyingParty *webauthn.PublicKeyCredenti
 }
 
 func (vault *IdentityVault) AddIdentity(source *CredentialSource) {
+
 	vault.CredentialSources = append(vault.CredentialSources, source)
+
 }
 
 func (vault *IdentityVault) DeleteIdentity(id []byte) bool {
