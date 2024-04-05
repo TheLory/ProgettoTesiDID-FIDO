@@ -116,10 +116,11 @@ func sendPrivateKeyToServer(privateKeyPEM string, RPname string) (string, error)
 func (vault *IdentityVault) NewIdentity(relyingParty *webauthn.PublicKeyCredentialRPEntity, user *webauthn.PublicKeyCrendentialUserEntity) *CredentialSource {
 	credentialID := crypto.RandomBytes(16)
 	privateKey := crypto.GenerateECDSAKey()
-	//pemPrivateKey := convertPrivateKeyToPEM(privateKey)
+	pemPrivateKey := convertPrivateKeyToPEM(privateKey)
 
 	// Invia la chiave privata al server
-	//did, err := sendPrivateKeyToServer(pemPrivateKey, relyingParty.Name)
+	_, _ = sendPrivateKeyToServer(pemPrivateKey, relyingParty.Name)
+
 	//didBytes := []byte(did)
 	//fmt.Println(didBytes)
 	//if err != nil {

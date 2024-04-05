@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Generazione DID</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.5em; padding: 2em 10em; }
+        h1, h2 { color: #325F74; }
+        a { color: #0080ac; font-weight: bold; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        #richiestaId, #didGenerato, #dowloadDID, #home { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Generazione DID</h1>
+    <h2>Seleziona il file della chiave privata</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="private_key" required>
+        <input type="button" value="Carica" id="btnUpload">
+    </form>
+    <div id="uploadStatus"></div>
+
+    <hr>
+    <button id="richiestaId">Genera DID</button>
+    <p id="didGenerato">DID Generato: <span id="idGenerato"></span></p>
+    <a href="http://127.0.0.1:5002/downloadDID" id="dowloadDID">Download DID</a>
+    <a id="home" href="https://localhost:5001/index.html">Return to home</a>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#btnUpload').click(function() {
+                var formData = new FormData();
+                formData.append('private_key', $('input[type=file]')[0].files[0]);
+                
+                $.ajax({
+                    url: 'http://127.0.0.1:5002/uploadPrivateKey',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        $('#uploadStatus').html(response);
+                        $('#richiestaId').show();
+                        $('#didGenerato').show();
+                    },
+                    error: function() {
+                        $('#uploadStatus').html('Errore nel caricamento del file.');
+                    }
+                });
+            });
+        });
+
+        document.getElementById('richiestaId').addEventListener('click', function() {
+            fetch('http://localhost:5002/createdid')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('idGenerato').textContent = data;
+                    document.getElementById('dowloadDID').style.display = "block";
+                    document.getElementById('home').style.display = "block";
+                })
+                .catch(error => console.error('Problem with your fetch operation:', error));
+        });
+    </script>
+</body>
+</html>

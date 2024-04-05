@@ -36,7 +36,7 @@ Navigate to https://localhost:5000 in a supported web browser.
 from fido2.webauthn import PublicKeyCredentialRpEntity, PublicKeyCredentialUserEntity, AttestedCredentialData
 from fido2.server import Fido2Server
 from fido2.cose import CoseKey
-from flask import Flask, session, request, redirect, abort, jsonify, Response
+from flask import Flask, session, request, redirect, abort, jsonify, Response, render_template
 from flask_cors import CORS
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -51,6 +51,7 @@ from pymongo import MongoClient
 from bson.binary import Binary
 import json
 from datetime import datetime
+import asyncio
 
 
 serverKey = {
@@ -126,7 +127,8 @@ credential2 = {
 # Connessione a MongoDB
 client = MongoClient('mongodb://localhost:27017/')
 db = client['DIDFIDO']
-collection = db['DIDFIDO']
+collection = db['WALLET']
+
 
 
 fido2.features.webauthn_json_mapping.enabled = True
@@ -135,7 +137,7 @@ fido2.features.webauthn_json_mapping.enabled = True
 app = Flask(__name__, static_url_path="")
 app.secret_key = os.urandom(32)  # Used for session.
 CORS(app)
-rp = PublicKeyCredentialRpEntity(name="Progetto Tesi", id="localhost")
+rp = PublicKeyCredentialRpEntity(name="Wallet", id="localhost")
 server = Fido2Server(rp)
 
 
@@ -161,7 +163,7 @@ def register_begin():
     displayname = data.get('displayname')
     options, state = server.register_begin(
         PublicKeyCredentialUserEntity(
-            id= os.urandom(16), # da cambiare con il did ricevuto direttamente da fido, oppure valutare se mettere il did nell'username
+            id= os.urandom(16),
             name= username.encode('ascii'),
             display_name= displayname,
         ),
@@ -311,13 +313,144 @@ def downloadVC():
     response.headers['Content-Disposition'] = 'attachment; filename=verifiableCredential.json'
     return response
 
+
+##########MOSTRA VC#############################################################################################################
+
+vc_storage_file = 'vc_storage.json'
+
+vp_storage_file = 'vp_storage.json'
+
+@app.route('/vcmanagerVP')
+def upload_and_display_vp():
+ # Verifica se il file di storage esiste, altrimenti crea un file vuoto
+    if not os.path.exists(vp_storage_file):
+        with open(vp_storage_file, 'w') as file:
+            json.dump([], file)
+    
+    # Carica i VC dal file di storage
+    with open(vp_storage_file, 'r') as file:
+        stored_vps = json.load(file)
+
+    # Carica la pagina HTML per il caricamento del file e visualizza i VC
+    return  render_template('vcmanager.html', vcs=stored_vps)    
+
+@app.route('/vcmanager2')  # Cambiato da '/' a '/vcmanager'
+def upload_and_display_vc():
+    # Verifica se il file di storage esiste, altrimenti crea un file vuoto
+    if not os.path.exists(vc_storage_file):
+        with open(vc_storage_file, 'w') as file:
+            json.dump([], file)
+    
+    # Carica i VC dal file di storage
+    with open(vc_storage_file, 'r') as file:
+        stored_vcs = json.load(file)
+
+    # Carica la pagina HTML per il caricamento del file e visualizza i VC
+    return  render_template('vcmanager.html', vcs=stored_vcs)
+
+
+
+@app.route('/vcmanager')
+def upload_and_display_vcvp():
+    # Verifica e crea il file di storage per VC se non esiste
+    if os.path.exists("wallet_did"):
+        # Leggi il contenuto del file "wallet_did"
+        with open("wallet_did", "r") as file:
+            did_content = file.read()
+    else:
+        # Se il file non esiste, impostiamo il contenuto del DID come vuoto
+        did_content = ""
+
+    if not os.path.exists(vc_storage_file):
+        with open(vc_storage_file, 'w') as file:
+            json.dump([], file)
+    
+    # Carica i VC dal file di storage
+    with open(vc_storage_file, 'r') as file:
+        stored_vcs = json.load(file)
+    
+    # Verifica e crea il file di storage per VP se non esiste
+    if not os.path.exists(vp_storage_file):
+        with open(vp_storage_file, 'w') as file:
+            json.dump([], file)
+    
+    # Carica i VP dal file di storage
+    with open(vp_storage_file, 'r') as file:
+        stored_vps = json.load(file)
+
+    # Carica la pagina HTML per il caricamento del file e visualizza sia i VC che i VP
+    return render_template('vcmanager.html', vcs=stored_vcs, vps=stored_vps,did_content= did_content)
+
+@app.route('/vcmanager/upload', methods=['POST'])  # Aggiustato per rispecchiare il nuovo percorso
+def handle_upload():
+    if 'file' not in request.files:
+        return 'Nessun file selezionato', 400
+    file = request.files['file']
+    if file.filename == '':
+        return 'Nessun file selezionato', 400
+    if file and file.filename.endswith('.json'):
+        # Legge il contenuto del VC
+        vc_content = json.loads(file.read())
+
+        # Carica i VC esistenti e aggiunge il nuovo VC
+        if os.path.exists(vc_storage_file):
+            with open(vc_storage_file, 'r') as file:
+                stored_vcs = json.load(file)
+        else:
+            stored_vcs = []
+        
+        stored_vcs.append(vc_content)
+
+        # Salva l'aggiornamento dei VC nel file
+        with open(vc_storage_file, 'w') as file:
+            json.dump(stored_vcs, file)
+
+        return redirect('/vcmanager')
+    else:
+        return 'Formato file non supportato', 400
+
+################################################################################################################################
+
 def main():
    # print(__doc__)
-    #app.run(ssl_context=None, debug=True, port=5001)
-    
-    app.run(ssl_context=("./localhost.crt","./localhost.key"), debug=True,port=5001)
+    #app.run(ssl_context=None, debug=True, port=5003)
+    asyncio.run(getPublicKey())
+    app.run(ssl_context=("./cert.pem","./key.pem"), debug=True,port=5003)
     #app.run(ssl_context=None, debug=True,port=5001)
 
 
+@app.route('/genera-vp', methods=['POST'])
+def genera_vp():
+    vc_data = request.form.get('vc')
+    if vc_data:
+        #Todo inviare richiesta al client per impostare la ricezione della chiave
+        #autneticazione
+        #recupero della VP dal client
+
+        # Processa la VC per generare un VP
+        # Questo è un esempio, dovrai sostituirlo con la tua logica specifica
+        print(vc_data)  # Stampa o lavora con i dati della VC qui
+        return jsonify({"status": "success", "message": "VP generato correttamente."})
+    else:
+        return jsonify({"status": "error", "message": "Nessun dato VC fornito."}), 400
+
+
+async def getPublicKey():
+    global did_wallet_persistent
+    global wallet_public_key
+    try:
+        # Apri il file "wallet_did" in modalità lettura
+        with open("wallet_did", "r") as file:
+            # Leggi il contenuto del file e assegna il DID alla variabile did
+            did_wallet_persistent = file.read().strip()
+            publick_key_wallet = await didkit.resolve_did(did_wallet_persistent,"{}")
+            print("############")
+            print("Chiave pubblica del did: ", publick_key_wallet,"")
+            print("############")
+    except FileNotFoundError:
+        # Se il file non esiste, imposta il DID su None
+        did = None
+
 if __name__ == "__main__":
     main()
+   

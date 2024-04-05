@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>VC Manager</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+     
+    <style>
+        .card-body {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+
+<script type="module">
+    import {
+        get,
+        parseRequestOptionsFromJSON,
+    } from '/webauthn-json.browser-ponyfill.js';
+
+    function inviaRichiestaVP() {
+        return new Promise((resolve, reject) => {
+        const url = "http://localhost:5002/api/richiediVP";
+
+        fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log(data);
+          resolve(data); // Risolvi la Promise con i dati ricevuti
+        })
+        .catch(error => {
+          console.error('There has been a problem with your fetch operation:', error);
+          reject(error); // Rifiuta la Promise in caso di errore
+        });
+      });
+}
+
+    async function start(vcJson) {
+    
+      const vc = JSON.parse(vcJson);
+      //invio richiesta al client per modificare il cvalore della richiestaVP
+      await inviaRichiestaVP();
+
+      let request = await fetch('/api/authenticate/begin', {
+        method: 'POST',
+      });
+      if(!request.ok) {
+        throw new Error('No credential available to authenticate!');
+      }
+      let json = await request.json();
+      console.log(json)
+      let options = parseRequestOptionsFromJSON(json);
+      console.log(options)
+      let response = await get(options);
+
+      let result = await fetch('/api/authenticate/complete', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+	      body: JSON.stringify(response),
+      });
+
+      let stat = result.ok ? 'successful' : 'unsuccessful';
+      alert('Authentication ' + stat + ' More details in server log...');
+     
+      console.log("############")
+        console.log(JSON.stringify(vc))
+        console.log("############")
+        // Inviare la VC a /issueVP
+    let vpRequest = await fetch('http://localhost:5002/issueVP', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(vc) // vc è l'oggetto JSON della Verifiable Credential
+    });
+
+    if(vpRequest.ok) {
+        let vpResponse = await vpRequest.json();
+        console.log('Verifiable Presentation:', vpResponse);
+        location.reload();
+        // Gestisci la Verifiable Presentation qui
+    } else {
+        throw new Error('Failed to issue Verifiable Presentation');
+    }
+    
+    } 
+
+    async function validaVP(vp,did){
+      
+      console.log(did)
+      try{
+        const response = await fetch('http://localhost:5002/validateVP', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Impostazione dell'header per indicare che il corpo della richiesta è un JSON.
+            },
+            body: JSON.stringify(vp) // Converte l'oggetto JavaScript in una stringa JSON.
+        })
+        if (!response.ok) {
+         throw new Error(`HTTP error! status: ${response.status}`);
+       }
+       const data = await response.json();
+       console.log()
+       alert("Risultati validazione: " +  JSON.stringify(data['Response'], null, 2))
+         }catch (error){
+            console.error("Errore durante la validazione della VP: ", error)
+        }
+    
+
+    }
+
+    window.start = start;
+    window.validaVP = validaVP;
+
+  </script>
+
+
+</head>
+<body>
+
+    
+
+    <div class="container mt-5" >
+      
+      <h3 class="mb-3">Il tuo DID</h3>
+        <div class="card mb-3">
+            <div class="card-body">
+                <pre class="card-text">{{ did_content }}</pre>
+            </div>
+        </div>
+
+        <h2 class="mb-4">Carica e Visualizza Verifiable Credentials</h2>
+        <h3 class="mb-3">Le tue Verifiable Credentials</h3>
+        <form action="/vcmanager/upload" method="post" enctype="multipart/form-data" class="mb-3">
+            <div class="form-group">
+                <input type="file" name="file" accept=".json" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Carica File</button>
+        </form>
+        {% for vc in vcs %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <pre class="card-text">{{ vc  }}</pre>
+        </div>
+        <button type="button" class="btn btn-secondary" data-vc='{{ vc }}' onclick="start(this.getAttribute('data-vc'))">Genera VP</button>
+      </div>
+    {% endfor %}
+          <!-- Sezione aggiunta per le Verifiable Presentations -->
+          <h3 class="mb-3">Le tue Verifiable Presentations</h3>
+          {% for vp in vps %}
+          <div class="card mb-3">
+              <div class="card-body">
+                  <pre class="card-text">{{ vp }}</pre>
+              </div>
+              <button type="button" class="btn btn-secondary" data-vp='{{ vp }}'  data-did='{{ did_content }}' onclick="validaVP(this.getAttribute('data-vp'),this.getAttribute('data-did'))">Valida VP</button>
+          </div>
+          {% endfor %}
+    </div>
+</body>
+</html>
