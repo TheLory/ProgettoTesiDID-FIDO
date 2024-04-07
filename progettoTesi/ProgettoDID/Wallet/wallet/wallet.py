@@ -53,87 +53,12 @@ import json
 from datetime import datetime
 import asyncio
 
-
-serverKey = {
-  "kty": "RSA",
-  "use": "sig",
-  "kid": "12345",
-  "n": "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LZK4ugt4e48WzcgyM9dAkk1aGf8H3AZiSn7yVuvPbk3TWvgdX5guj4XQiHf4yVzPLWk6ACloYDl2abA2d7pFifcRY6t7NwT3fJv2PQFyS4tTVPIFm6QLv7Z4TeEUo9H2mkGvUQ",
-  "e": "AQAB",
-  "alg": "RS256",
-  "d": "X4cTteJY_gn4FYPsXB8rdXKTCtXMI3OKXnS14G3GgR5K...saQ",
-  "p": "_xcC2-8LNKHP...0Q",
-  "q": "5nU8QoH...2T0",
-  "dp": "BwKsBn...PjQ",
-  "dq": "h_6mI...kjg",
-  "qi": "I3bhA...89M"
-}
-
-credential1 = {
-  "@context": [
-    "https://www.w3.org/2018/credentials/v1",
-    "https://www.w3.org/2018/credentials/examples/v1"
-  ],
-  "id": "https://example.gov/credentials/3732",
-  "type": ["VerifiableCredential", "PersonalIdentityCredential"],
-  "issuer": "https://example.gov/issuers/14",
-  "issuanceDate": "2020-10-20T19:73:24Z",
-  "credentialSubject": {
-    "id": "did:example:abcdef123456",
-    "name": "Mario Rossi",
-    "dateOfBirth": "1990-01-01",
-    "nationality": "Italiana",
-    "documentNumber": "AA123456"
-  },
-  "proof": {
-    "type": "RsaSignature2018",
-    "created": "2020-10-20T19:73:24Z",
-    "proofPurpose": "assertionMethod",
-    "verificationMethod": "https://example.gov/issuers/keys/1",
-    "jws": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEifQ.eyJpc3MiOiJodHRwczovL2V4YW1wbGUuZ292L2lzc3VlcnMvMTQiLCJzdWIiOiJkaWQ6ZXhhbXBsZTphYmNkZWYxMjM0NTYiLCJqdGkiOiJodHRwczovL2V4YW1wbGUuZ292L2NyZWRlbnRpYWxzLzM3MzIifQ.Kyv7xg..."
-  }
-}
-
-credential2 = {
-  "@context": [
-    "https://www.w3.org/2018/credentials/v1",
-    "https://www.w3.org/2018/credentials/examples/v1"
-  ],
-  "id": "https://example.edu/credentials/5656",
-  "type": ["VerifiableCredential", "UniversityDegreeCredential"],
-  "issuer": "https://example.edu/issuers/5656",
-  "issuanceDate": "2021-06-20T19:53:24Z",
-  "credentialSubject": {
-    "id": "did:example:abcdef123456",
-    "name": "Maria Bianchi",
-    "degree": {
-      "type": "BachelorDegree",
-      "name": "Laurea in Informatica",
-      "school": "Università degli Studi di Esempio"
-    },
-    "dateOfGraduation": "2021-06-20"
-  },
-  "proof": {
-    "type": "RsaSignature2018",
-    "created": "2021-06-20T19:53:24Z",
-    "proofPurpose": "assertionMethod",
-    "verificationMethod": "https://example.edu/issuers/keys/5656",
-    "jws": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjU2NTYifQ.eyJpc3MiOiJodHRwczovL2V4YW1wbGUuZWR1L2lzc3VlcnMvNTY1NiIsInN1YiI6ImRpZDpleGFtcGxlOmFiY2RlZjEyMzQ1NiIsImp0aSI6Imh0dHBzOi8vZXhhbXBsZS5lZHUvY3JlZGVudGlhbHMvNTY1NiJ9.QWdN..."
-  }
-}
-
-
-
 # Connessione a MongoDB
 client = MongoClient('mongodb://localhost:27017/')
 db = client['DIDFIDO']
 collection = db['WALLET']
 
-
-
 fido2.features.webauthn_json_mapping.enabled = True
-
-
 app = Flask(__name__, static_url_path="")
 app.secret_key = os.urandom(32)  # Used for session.
 CORS(app)
@@ -141,11 +66,7 @@ rp = PublicKeyCredentialRpEntity(name="Wallet", id="localhost")
 server = Fido2Server(rp)
 
 
-# Registered credentials are stored globally, in memory only. Single user
-# support, state is lost when the server terminates.
-credentials = [] ## sostituire con db locale
-
-verfiableCredentials = ""
+credentials = []
 
 @app.route("/")
 def index():
@@ -163,7 +84,7 @@ def register_begin():
     displayname = data.get('displayname')
     options, state = server.register_begin(
         PublicKeyCredentialUserEntity(
-            id= os.urandom(16),
+            id= os.urandom(32), # da cambiare con il did ricevuto direttamente da fido, oppure valutare se mettere il did nell'username
             name= username.encode('ascii'),
             display_name= displayname,
         ),
@@ -263,57 +184,6 @@ def pem_to_jwk(file_path):
 
     return json.dumps(jwk, indent=2)
 
-def get_current_time():
-    return datetime.now().replace(microsecond=0).isoformat() + "Z"
-
-def create_university_degree_vc(did,DIDUtente):
-    cred = {
-        "@context": "https://www.w3.org/2018/credentials/v1",
-        "id": "http://127.0.0.1:5001/universityDID",
-        "type": ["VerifiableCredential"],
-        "issuer": did,
-        "issuanceDate": get_current_time(),
-        "credentialSubject": {
-            "id": DIDUtente,
-        }
-    }
-
-    return cred
-
-
-
-
-@app.route("/api/issueVC",methods = ["POST"])
-async def issueVC():
-    data = request.get_json()
-    didUtente = data.get('did')
-    global verfiableCredentials
-    key_file = "server_private_key.pem"
-    key = pem_to_jwk(key_file)
-    verificationMethods = await didkit.key_to_verification_method("key",key)
-    #jwk = didkit.generate_ed25519_key()
-    did = didkit.key_to_did("key", key)
-    options = json.dumps ({
-         "proofPurpose": "assertionMethod",
-         "verificationMethod" : verificationMethods
-    })
-    cred = create_university_degree_vc(did,didUtente)  
-    verifiable_credential_signed = await didkit.issue_credential(
-        json.dumps(cred),
-        json.dumps({}),
-        key)
-#    print(f"Signed Credentials: {json.loads(verifiable_credential_signed)}")
-    verfiableCredentials = verifiable_credential_signed
-    return json.loads(verifiable_credential_signed)
-
-@app.route("/api/downloadVC")
-def downloadVC():
-    json_data = json.dumps(verfiableCredentials)
-    response = Response(json_data, mimetype='application/json')
-    response.headers['Content-Disposition'] = 'attachment; filename=verifiableCredential.json'
-    return response
-
-
 ##########MOSTRA VC#############################################################################################################
 
 vc_storage_file = 'vc_storage.json'
@@ -347,7 +217,6 @@ def upload_and_display_vc():
 
     # Carica la pagina HTML per il caricamento del file e visualizza i VC
     return  render_template('vcmanager.html', vcs=stored_vcs)
-
 
 
 @app.route('/vcmanager')
@@ -411,13 +280,6 @@ def handle_upload():
 
 ################################################################################################################################
 
-def main():
-   # print(__doc__)
-    #app.run(ssl_context=None, debug=True, port=5003)
-    asyncio.run(getPublicKey())
-    app.run(ssl_context=("./cert.pem","./key.pem"), debug=True,port=5003)
-    #app.run(ssl_context=None, debug=True,port=5001)
-
 
 @app.route('/genera-vp', methods=['POST'])
 def genera_vp():
@@ -450,6 +312,16 @@ async def getPublicKey():
     except FileNotFoundError:
         # Se il file non esiste, imposta il DID su None
         did = None
+
+
+def main():
+   # print(__doc__)
+    #app.run(ssl_context=None, debug=True, port=5003)
+    asyncio.run(getPublicKey())
+    app.run(ssl_context=("./cert.pem","./key.pem"), debug=True,port=5003)
+    #app.run(ssl_context=None, debug=True,port=5001)
+
+
 
 if __name__ == "__main__":
     main()

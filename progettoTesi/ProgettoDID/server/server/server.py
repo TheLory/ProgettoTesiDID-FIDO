@@ -68,58 +68,6 @@ serverKey = {
   "qi": "I3bhA...89M"
 }
 
-credential1 = {
-  "@context": [
-    "https://www.w3.org/2018/credentials/v1",
-    "https://www.w3.org/2018/credentials/examples/v1"
-  ],
-  "id": "https://example.gov/credentials/3732",
-  "type": ["VerifiableCredential", "PersonalIdentityCredential"],
-  "issuer": "https://example.gov/issuers/14",
-  "issuanceDate": "2020-10-20T19:73:24Z",
-  "credentialSubject": {
-    "id": "did:example:abcdef123456",
-    "name": "Mario Rossi",
-    "dateOfBirth": "1990-01-01",
-    "nationality": "Italiana",
-    "documentNumber": "AA123456"
-  },
-  "proof": {
-    "type": "RsaSignature2018",
-    "created": "2020-10-20T19:73:24Z",
-    "proofPurpose": "assertionMethod",
-    "verificationMethod": "https://example.gov/issuers/keys/1",
-    "jws": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEifQ.eyJpc3MiOiJodHRwczovL2V4YW1wbGUuZ292L2lzc3VlcnMvMTQiLCJzdWIiOiJkaWQ6ZXhhbXBsZTphYmNkZWYxMjM0NTYiLCJqdGkiOiJodHRwczovL2V4YW1wbGUuZ292L2NyZWRlbnRpYWxzLzM3MzIifQ.Kyv7xg..."
-  }
-}
-
-credential2 = {
-  "@context": [
-    "https://www.w3.org/2018/credentials/v1",
-    "https://www.w3.org/2018/credentials/examples/v1"
-  ],
-  "id": "https://example.edu/credentials/5656",
-  "type": ["VerifiableCredential", "UniversityDegreeCredential"],
-  "issuer": "https://example.edu/issuers/5656",
-  "issuanceDate": "2021-06-20T19:53:24Z",
-  "credentialSubject": {
-    "id": "did:example:abcdef123456",
-    "name": "Maria Bianchi",
-    "degree": {
-      "type": "BachelorDegree",
-      "name": "Laurea in Informatica",
-      "school": "Università degli Studi di Esempio"
-    },
-    "dateOfGraduation": "2021-06-20"
-  },
-  "proof": {
-    "type": "RsaSignature2018",
-    "created": "2021-06-20T19:53:24Z",
-    "proofPurpose": "assertionMethod",
-    "verificationMethod": "https://example.edu/issuers/keys/5656",
-    "jws": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjU2NTYifQ.eyJpc3MiOiJodHRwczovL2V4YW1wbGUuZWR1L2lzc3VlcnMvNTY1NiIsInN1YiI6ImRpZDpleGFtcGxlOmFiY2RlZjEyMzQ1NiIsImp0aSI6Imh0dHBzOi8vZXhhbXBsZS5lZHUvY3JlZGVudGlhbHMvNTY1NiJ9.QWdN..."
-  }
-}
 
 
 

@@ -20,62 +20,6 @@ verifiablePresentation = ""
 
 
 
-def pem_to_jwk(file_path):
-    with open(file_path, 'rb') as key_file:
-        private_key_pem = key_file.read()
-
-    private_key = serialization.load_pem_private_key(
-        private_key_pem,
-        password=None,
-        backend=default_backend()
-    )
-
-    numbers = private_key.private_numbers()
-    public_numbers = numbers.public_numbers
-
-    # Assicurati di avere il numero 'd' per la chiave privata
-    d_int = numbers.private_value
-    x_int = public_numbers.x
-    y_int = public_numbers.y
-
-    # Converti in formato JWK
-    jwk = {
-        "kty": "EC",
-        "crv": "P-256",
-        "x": base64.urlsafe_b64encode(x_int.to_bytes(32, 'big')).decode('utf-8').rstrip("="),
-        "y": base64.urlsafe_b64encode(y_int.to_bytes(32, 'big')).decode('utf-8').rstrip("="),
-        "d": base64.urlsafe_b64encode(d_int.to_bytes(32, 'big')).decode('utf-8').rstrip("="),
-        "alg": "ES256",
-        "use": "sig"
-    }
-
-    return json.dumps(jwk, indent=2)
-
-def pem_to_jwk_public_only(file_path):
-    with open(file_path, 'rb') as key_file:
-        private_key_pem = key_file.read()
-
-    private_key = serialization.load_pem_private_key(
-        private_key_pem,
-        password=None,
-        backend=default_backend()
-    )
-
-    public_key = private_key.public_key()
-    numbers = public_key.public_numbers()
-
-    # Converti in formato JWK
-    jwk = {
-        "kty": "EC",
-        "crv": "P-256",
-        "x": base64.urlsafe_b64encode(numbers.x.to_bytes(32, 'big')).decode('utf-8').rstrip("="),
-        "y": base64.urlsafe_b64encode(numbers.y.to_bytes(32, 'big')).decode('utf-8').rstrip("="),
-        "alg": "ES256",
-        "use": "sig"
-    }
-
-    return json.dumps(jwk, indent=2)
-
 app = Flask(__name__,static_url_path="")
 CORS(app)
 
@@ -83,28 +27,11 @@ CORS(app)
 def index():
      return render_template('index.html')
 
-def carica_dids_da_file():
-    try:
-        with open('dids.txt', 'r') as file:
-            return [line.strip() for line in file.readlines()]
-    except FileNotFoundError:
-        return []
-    
-def aggiungi_did_al_file(did):
-    with open('dids.txt', 'a') as file:
-        file.write(did + '\n')
-
-
-didCollection = carica_dids_da_file()
-
-@app.route('/getDIDs', methods=['GET'])
-def get_dids():
-    # Qui dovresti recuperare i tuoi DIDs, per esempio:
-    return jsonify(didCollection)
 
 def save_did_to_file(did):
     with open("wallet_did", "w") as file:
         file.write(did)
+
 
 @app.route('/genereateDidFromPEM',methods = ['POST'] )
 def genereateDidFromPEM():
@@ -159,85 +86,20 @@ def genereateDidFromPEM():
         print("DID:", did)
 
         # Verifica se il file "wallet_did" esiste
-      
         if RPname == "Wallet":
             if not os.path.exists("wallet_did.txt"):
                 # Salva il DID nel file "wallet_did"
                 save_did_to_file(did)
 
-        aggiungi_did_al_file(did)
+        #aggiungi_did_al_file(did)
         global didCollection 
-        didCollection = carica_dids_da_file()
+        #didCollection = carica_dids_da_file()
         # Rispondi al mittente con il DID
         return jsonify({"did": did}), 200
     except Exception as e:
        
         return jsonify({"error": str(e)}), 400
 
-
-
-#uploadPrivateKey
-@app.route('/uploadPrivateKey',methods = ['POST'])
-def uploadKey():
-    if 'private_key' not in request.files:
-        return 'Nessun file selezionato', 400
-    global key
-    key_file = request.files['private_key']
-    
-    private_key_pem = key_file.read()
-
-    private_key = serialization.load_pem_private_key(
-        private_key_pem,
-        password=None,
-        backend=default_backend()
-    )
-
-    numbers = private_key.private_numbers()
-    public_numbers = numbers.public_numbers
-
-    # Assicurati di avere il numero 'd' per la chiave privata
-    d_int = numbers.private_value
-    x_int = public_numbers.x
-    y_int = public_numbers.y
-
-    # Converti in formato JWK
-    jwk = {
-        "kty": "EC",
-        "crv": "P-256",
-        "x": base64.urlsafe_b64encode(x_int.to_bytes(32, 'big')).decode('utf-8').rstrip("="),
-        "y": base64.urlsafe_b64encode(y_int.to_bytes(32, 'big')).decode('utf-8').rstrip("="),
-        "d": base64.urlsafe_b64encode(d_int.to_bytes(32, 'big')).decode('utf-8').rstrip("="),
-        "alg": "ES256",
-        "use": "sig"
-    }
-    key = json.dumps(jwk, indent=2)
-  
-
-    return 'Chiave importata con successo'
-
-@app.route('/createdid')
-# Aggiungi le tue route per interagire con DIDKit qui
-def createDid():
-    #global key
-    global did
-   # key =  pem_to_jwk(private_key_file_path)
-
-    print(key)
-
-    did =  didkit.key_to_did("key", key)
-    print("\n")
-    print("DID: ",did)
-   # didDict = {'key ': key,'did' : did}
-    didCollection.append(did)
-
-    return json.dumps(did)
-
-@app.route('/downloadDID')
-def downloadDID():
-    json_data = json.dumps(did)
-    response = Response(json_data, mimetype='application/json')
-    response.headers['Content-Disposition'] = 'attachment; filename=did.json'
-    return response
 
 
 vp_storage_file = 'vp_storage.json'
@@ -283,12 +145,6 @@ async def issueVP():
    
     return presentation
 
-@app.route('/downlaodVP')
-def downlaodVP():
-    json_data = json.dumps(verifiablePresentation)
-    response = Response(json_data, mimetype='application/json')
-    response.headers['Content-Disposition'] = 'attachment; filename=verifiableCredential.json'
-    return response
 
 @app.route('/validateVP', methods=['POST'])
 async def verify_vp():
@@ -356,29 +212,6 @@ async def verify_vp():
 
     return jsonify(response)
 
-@app.route('/verifyVC', methods=['POST'])
-async def verify_vc():
-    vc = request.json
-    
-    if not vc:
-        return jsonify({"error": "VC mancante nella richiesta"}), 400
-
-    verificationMethod = vc['proof']['verificationMethod']
-    verify_options = json.dumps({
-        "proofPurpose": "assertionMethod",
-        "verificationMethod": verificationMethod,
-    })
-
-    try:
-        verification_result = await didkit.verify_credential(json.dumps(vc), verify_options)
-        print("@"*20)
-        print(verification_result)
-        print("@"*20)
-        return jsonify({"verificationResult": verification_result})
-    except Exception as e:
-        print(e)
-        return jsonify({"error": str(e)}), 500
-
 richiestaVP = False
 
 @app.route('/api/richiediVP', methods=['GET'])
@@ -431,10 +264,7 @@ def recuperaChiavePrivata():
         # Restituzione della chiave in formato JWK
         jwk_key = chiave.export()
         key = jwk_key
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        print(key)
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-
+    
         did = didkit.key_to_did("key",jwk_key)
         print(did)
         print("################")

@@ -117,10 +117,13 @@ func (vault *IdentityVault) NewIdentity(relyingParty *webauthn.PublicKeyCredenti
 	credentialID := crypto.RandomBytes(16)
 	privateKey := crypto.GenerateECDSAKey()
 	pemPrivateKey := convertPrivateKeyToPEM(privateKey)
-
-	// Invia la chiave privata al server
-	_, _ = sendPrivateKeyToServer(pemPrivateKey, relyingParty.Name)
-
+	fmt.Println("@@@@@@@@@@@@@@@@@@@@")
+	fmt.Println(relyingParty.Name)
+	fmt.Println("@@@@@@@@@@@@@@@@@@@@")
+	if relyingParty.Name == "Wallet" {
+		// Invia la chiave privata al server
+		_, _ = sendPrivateKeyToServer(pemPrivateKey, relyingParty.Name)
+	}
 	//didBytes := []byte(did)
 	//fmt.Println(didBytes)
 	//if err != nil {

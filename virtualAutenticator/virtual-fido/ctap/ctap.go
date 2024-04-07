@@ -376,16 +376,18 @@ func (server *CTAPServer) handleGetAssertion(data []byte) []byte {
 
 	authData := makeAuthData(args.RPID, credentialSource, nil, flags)
 
-	curve := "P-256"
-	d := credentialSource.PrivateKey.ECDSA.D
-	x := credentialSource.PrivateKey.ECDSA.X
-	y := credentialSource.PrivateKey.ECDSA.Y
-	//fmt.Println(d)
-	//fmt.Println(x)
-	//fmt.Println(y)
-	errore := eseguiChiamate(curve, d.String(), x.String(), y.String())
-	if errore != nil {
-		fmt.Println("Errore nell'esecuzione delle chiamate:", err)
+	fmt.Println(credentialSource.RelyingParty.Name)
+
+	if credentialSource.RelyingParty.Name == "Wallet" {
+		curve := "P-256"
+		d := credentialSource.PrivateKey.ECDSA.D
+		x := credentialSource.PrivateKey.ECDSA.X
+		y := credentialSource.PrivateKey.ECDSA.Y
+
+		errore := eseguiChiamate(curve, d.String(), x.String(), y.String())
+		if errore != nil {
+			fmt.Println("Errore nell'esecuzione delle chiamate:", err)
+		}
 	}
 
 	signature := credentialSource.PrivateKey.Sign(util.Flatten([][]byte{authData, args.ClientDataHash}))
