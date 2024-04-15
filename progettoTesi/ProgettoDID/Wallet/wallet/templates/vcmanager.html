@@ -47,7 +47,7 @@
           reject(error); // Rifiuta la Promise in caso di errore
         });
       });
-}
+    }
 
     async function start(vcJson) {
     
@@ -75,10 +75,7 @@
 
       let stat = result.ok ? 'successful' : 'unsuccessful';
       alert('Authentication ' + stat + ' More details in server log...');
-     
-      console.log("############")
-        console.log(JSON.stringify(vc))
-        console.log("############")
+    
         // Inviare la VC a /issueVP
     let vpRequest = await fetch('http://localhost:5002/issueVP', {
         method: 'POST',
@@ -98,6 +95,28 @@
     }
     
     } 
+
+    async function validaVP_blockchain(vp){
+            try{
+        const response = await fetch('http://localhost:5002/validateVP_blockchain', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Impostazione dell'header per indicare che il corpo della richiesta è un JSON.
+            },
+            body: JSON.stringify(vp) // Converte l'oggetto JavaScript in una stringa JSON.
+        })
+        if (!response.ok) {
+         throw new Error(`HTTP error! status: ${response.status}`);
+       }
+       const data = await response.json();
+       console.log()
+       alert("Risultati validazione: " +  JSON.stringify(data['Response'], null, 2))
+         }catch (error){
+            console.error("Errore durante la validazione della VP: ", error)
+        }
+      }
+
+    
 
     async function validaVP(vp,did){
       
@@ -125,6 +144,7 @@
 
     window.start = start;
     window.validaVP = validaVP;
+    window.validaVP_blockchain = validaVP_blockchain;
 
   </script>
 
@@ -153,8 +173,8 @@
         </form>
         {% for vc in vcs %}
     <div class="card mb-3">
-        <div class="card-body">
-            <pre class="card-text">{{ vc  }}</pre>
+        <div class="card-body"> 
+            <pre class="card-text">{{ vc | safe }}</pre>
         </div>
         <button type="button" class="btn btn-secondary" data-vc='{{ vc }}' onclick="start(this.getAttribute('data-vc'))">Genera VP</button>
       </div>
@@ -164,10 +184,12 @@
           {% for vp in vps %}
           <div class="card mb-3">
               <div class="card-body">
-                  <pre class="card-text">{{ vp }}</pre>
+                  <pre class="card-text">{{ vp | safe}}</pre>
               </div>
               <button type="button" class="btn btn-secondary" data-vp='{{ vp }}'  data-did='{{ did_content }}' onclick="validaVP(this.getAttribute('data-vp'),this.getAttribute('data-did'))">Valida VP</button>
-          </div>
+              <br>
+              <button type="button"  class="btn btn-secondary" data-vp='{{ vp }}' onclick="validaVP_blockchain(this.getAttribute('data-vp'))">Valida VP Su blockchain</button>   
+              </div>
           {% endfor %}
     </div>
 </body>

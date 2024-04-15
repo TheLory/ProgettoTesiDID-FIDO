@@ -51,6 +51,9 @@ from pymongo import MongoClient
 from bson.binary import Binary
 import json
 from datetime import datetime
+from web3 import Web3
+import json
+from eth_account import Account
 
 
 serverKey = {
@@ -122,7 +125,7 @@ def register_begin():
 
     session["state"] = state
     
-
+   
     return jsonify(dict(options))
 
 
@@ -157,6 +160,7 @@ def authenticate_begin():
         credentials = getCredentialFromMongo()
     if not credentials:
         abort(405)
+    print(credentials)
     options, state = server.authenticate_begin(credentials)
     session["state"] = state
     
@@ -226,8 +230,62 @@ def create_university_degree_vc(did,DIDUtente):
 
     return cred
 
+def pubblica_vc_su_bc(verifiable_credential_signed):
+
+    w3 = Web3(Web3.HTTPProvider('HTTP://127.0.0.1:7545'))
+    # Verifica della connessione
+    if w3.is_connected():
+        print("Connesso alla blockchain Ethereum.")
+    else:
+        print("Non connesso alla blockchain Ethereum.")
+        exit()
+
+    # Dati dello smart contract
+    contract_address = '0x194D5Dc83e14b0a7Ad6A7e6fE355d78758aCcc0e'
+    abi = json.loads('[{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "issuer","type": "address"},{"indexed": true,"internalType": "uint256","name": "vcIndex","type": "uint256"},{"indexed": false,"internalType": "string","name": "vc","type": "string"}],"name": "VCPublished","type": "event"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"}],"name": "getVCCount","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "vc","type": "string"}],"name": "publishVC","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "uint256","name": "index","type": "uint256"}],"name": "retrieveVC","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "string","name": "content","type": "string"}],"name": "retrieveVCByContent","outputs": [{"internalType": "uint256","name": "","type": "uint256"},{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"name": "vcs","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"}] ')
+
+    # Creazione dell'istanza dello smart contract
+    contract = w3.eth.contract(address=contract_address, abi=abi)
 
 
+    # Account Ethereum e chiave privata (usa il tuo account e la tua chiave privata)
+    ethereum_address = '0x9f94951c1C6118027fB69B4d9A88d30e0ebFcee1'
+    private_key = '0x33c77c244f913d5a6e615dce5cca6bb9b52816c2ebd58dcd522e88c2987007d8'
+
+    # Genera una nuova coppia di chiavi per l'account Ethereum (o usa un account esistente)
+    account = Account.from_key(private_key)
+
+    # Estrai l'indirizzo Ethereum e la chiave privata
+    ethereum_address = account.address
+
+    vc_string = json.dumps(verifiable_credential_signed)
+    print("####")
+    print(json.loads(vc_string))
+    print("####")
+
+    # Preparazione della transazione
+    nonce = w3.eth.get_transaction_count(ethereum_address)
+    tx = contract.functions.publishVC(json.loads(vc_string)).build_transaction({
+        'chainId': 1337,  # Sostituisci con il chainId corretto
+        'gas': 2000000,
+        'gasPrice': w3.to_wei('50', 'gwei'),
+        'nonce': nonce,
+    })
+
+    index = contract.functions.getVCCount(ethereum_address).call()
+
+    print('Indice VC: ', index)
+
+    # Firma e invia la transazione
+    signed_tx = w3.eth.account.sign_transaction(tx, private_key=private_key)
+    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+    # Attendi la ricevuta della transazione
+    tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+
+    print(f"VC pubblicato sulla blockchain. Hash della transazione: {tx_receipt.transactionHash.hex()}")
+
+    return index
 
 @app.route("/api/issueVC",methods = ["POST"])
 async def issueVC():
@@ -249,15 +307,13 @@ async def issueVC():
         json.dumps({}),
         key)
 #    print(f"Signed Credentials: {json.loads(verifiable_credential_signed)}")
-    verfiableCredentials = verifiable_credential_signed
-    return json.loads(verifiable_credential_signed)
+    #recuperare indice specifico della VC
+  
 
-@app.route("/api/downloadVC")
-def downloadVC():
-    json_data = json.dumps(verfiableCredentials)
-    response = Response(json_data, mimetype='application/json')
-    response.headers['Content-Disposition'] = 'attachment; filename=verifiableCredential.json'
-    return response
+    verfiableCredentials = verifiable_credential_signed
+    index = pubblica_vc_su_bc(verifiable_credential_signed)
+    return json.dumps(verifiable_credential_signed)
+
 
 def main():
    # print(__doc__)

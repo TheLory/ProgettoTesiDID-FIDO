@@ -8,6 +8,10 @@ from cryptography.hazmat.primitives.asymmetric import ec
 import base64
 import json
 from jwcrypto import jwk
+from web3 import Web3
+import json
+from eth_account import Account
+
 didCollection = []
 
 private_key_file_path = 'Private key.pem'
@@ -101,6 +105,86 @@ def genereateDidFromPEM():
         return jsonify({"error": str(e)}), 400
 
 
+    vc_data = request.json
+     
+ethereum_address = '0xE599D021BDD45ed5605e5aC8FF3DC02C14bB9e99'
+private_key = '0x8d7443ef4d024e3217bc969fe957ed2ee2d72b805c91f4ec9a41e29006a0d9ca'
+
+contract_address = '0x194D5Dc83e14b0a7Ad6A7e6fE355d78758aCcc0e'
+abi = json.loads('[{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "issuer","type": "address"},{"indexed": true,"internalType": "uint256","name": "vcIndex","type": "uint256"},{"indexed": false,"internalType": "string","name": "vc","type": "string"}],"name": "VCPublished","type": "event"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"}],"name": "getVCCount","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "vc","type": "string"}],"name": "publishVC","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "uint256","name": "index","type": "uint256"}],"name": "retrieveVC","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "string","name": "content","type": "string"}],"name": "retrieveVCByContent","outputs": [{"internalType": "uint256","name": "","type": "uint256"},{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"name": "vcs","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"}]')
+
+infura_url = 'http://127.0.0.1:7545'
+
+@app.route('/validateVP_blockchain',methods=['POST'])
+def validateVP_blockchain():
+    vp = request.json
+
+    vp_json = json.loads(vp)
+    vc_json= vp_json["verifiableCredential"][0]
+    vc = json.dumps(vc_json)
+    print("##")
+    print(vc.replace(" ",""))
+    print("##")
+    web3 = Web3(Web3.HTTPProvider(infura_url))
+    if web3.is_connected():
+        print("Connesso a Ethereum")
+    else:
+        print("Non connesso a Ethereum")
+    contract = web3.eth.contract(address=contract_address, abi=abi)
+    server_eth_addrs = '0x9f94951c1C6118027fB69B4d9A88d30e0ebFcee1'
+    result = contract.functions.retrieveVCByContent(server_eth_addrs, vc.replace(" ","")).call()
+    print("@@")
+    print(contract.functions.retrieveVC(server_eth_addrs,3).call())
+    print("@@")
+
+    return {"Response": result}
+
+def publish_vp_on_bc(vp):
+    # Connessione a Web3
+    #w3 = Web3.HTTPProvider('https://mainnet.infura.io/v3/8f16a40523dd407fbc5fca53a10a8bb7'))
+    w3 = Web3(Web3.HTTPProvider('HTTP://127.0.0.1:7545'))
+    # Verifica della connessione
+    if w3.is_connected():
+        print("Connesso alla blockchain Ethereum.")
+    else:
+        print("Non connesso alla blockchain Ethereum.")
+        exit()
+
+    # Dati dello smart contract
+ 
+    # Creazione dell'istanza dello smart contract
+    contract = w3.eth.contract(address=contract_address, abi=abi)
+
+
+    # Genera una nuova coppia di chiavi per l'account Ethereum (o usa un account esistente)
+    account = Account.from_key(private_key)
+
+    # Estrai l'indirizzo Ethereum e la chiave privata
+    ethereum_address = account.address
+  
+
+    # Preparazione della transazione
+    nonce = w3.eth.get_transaction_count(ethereum_address)
+    tx = contract.functions.publishVC(vp).build_transaction({
+        'chainId': 1337,  # Sostituisci con il chainId corretto
+        'gas': 2000000,
+        'gasPrice': w3.to_wei('50', 'gwei'),
+        'nonce': nonce,
+    })
+
+    index = contract.functions.getVCCount(ethereum_address).call()
+
+    print('Indice VC: ', index)
+
+    # Firma e invia la transazione
+    signed_tx = w3.eth.account.sign_transaction(tx, private_key=private_key)
+    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+    # Attendi la ricevuta della transazione
+    tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+
+    print(f"VC pubblicato sulla blockchain. Hash della transazione: {tx_receipt.transactionHash.hex()}")
+
 
 vp_storage_file = 'vp_storage.json'
 
@@ -138,11 +222,11 @@ async def issueVP():
             stored_vps = json.load(file)
         except json.JSONDecodeError:
             stored_vps = []
-        stored_vps.append(json.loads(presentation))
+        stored_vps.append(presentation)
         file.seek(0)
         json.dump(stored_vps, file, ensure_ascii=False, indent=4)
         file.truncate()
-   
+    publish_vp_on_bc(presentation)
     return presentation
 
 
@@ -152,7 +236,9 @@ async def verify_vp():
     vp = request.json
 
     did = ""
-
+    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    print(vp)
+    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     with open('wallet_did', 'r') as file:
     # Leggo i contenuti del file
          did = file.readline().strip()

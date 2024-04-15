@@ -113,30 +113,41 @@ func sendPrivateKeyToServer(privateKeyPEM string, RPname string) (string, error)
 	return response.DID, nil // Restituisce il DID come valore della funzione
 }
 
+func deepCopyRPEntity(rp *webauthn.PublicKeyCredentialRPEntity) *webauthn.PublicKeyCredentialRPEntity {
+	newRP := &webauthn.PublicKeyCredentialRPEntity{
+		ID:   rp.ID, // Copia diretta poiché le stringhe sono immutabili in Go
+		Name: rp.Name,
+	}
+	return newRP
+}
+
+func deepCopyUserEntity(user *webauthn.PublicKeyCrendentialUserEntity) *webauthn.PublicKeyCrendentialUserEntity {
+	newUser := &webauthn.PublicKeyCrendentialUserEntity{
+		ID:          user.ID, // Copia diretta per la stessa ragione
+		Name:        user.Name,
+		DisplayName: user.DisplayName,
+	}
+	return newUser
+}
+
 func (vault *IdentityVault) NewIdentity(relyingParty *webauthn.PublicKeyCredentialRPEntity, user *webauthn.PublicKeyCrendentialUserEntity) *CredentialSource {
 	credentialID := crypto.RandomBytes(16)
 	privateKey := crypto.GenerateECDSAKey()
 	pemPrivateKey := convertPrivateKeyToPEM(privateKey)
-	fmt.Println("@@@@@@@@@@@@@@@@@@@@")
-	fmt.Println(relyingParty.Name)
-	fmt.Println("@@@@@@@@@@@@@@@@@@@@")
 	if relyingParty.Name == "Wallet" {
 		// Invia la chiave privata al server
 		_, _ = sendPrivateKeyToServer(pemPrivateKey, relyingParty.Name)
 	}
-	//didBytes := []byte(did)
-	//fmt.Println(didBytes)
-	//if err != nil {
-	//	fmt.Printf("Errore nell'invio della chiave privata: %s\n", err)
-	// Gestisci l'errore come necessario...
-	//}
+	rpCopy := deepCopyRPEntity(relyingParty)
+	userCopy := deepCopyUserEntity(user)
+
 	cosePrivateKey := &cose.SupportedCOSEPrivateKey{ECDSA: privateKey}
 	credentialSource := CredentialSource{
 		Type:             "public-key",
 		ID:               credentialID,
 		PrivateKey:       cosePrivateKey,
-		RelyingParty:     relyingParty,
-		User:             user,
+		RelyingParty:     rpCopy,
+		User:             userCopy,
 		SignatureCounter: 0,
 	}
 
@@ -145,9 +156,14 @@ func (vault *IdentityVault) NewIdentity(relyingParty *webauthn.PublicKeyCredenti
 }
 
 func (vault *IdentityVault) AddIdentity(source *CredentialSource) {
+	fmt.Printf("Aggiungendo Identity: %p\n", source)
+	fmt.Printf("Dettagli: RP=%p, User=%p, PrivateKey=%p\n", source.RelyingParty, source.User, source.PrivateKey)
 
 	vault.CredentialSources = append(vault.CredentialSources, source)
-
+	for i, src := range vault.CredentialSources {
+		fmt.Printf("Post aggiunta - ID %d: %p\n", i, src)
+		fmt.Printf("Dettagli post aggiunta: RP=%p, User=%p, PrivateKey=%p\n", src.RelyingParty, src.User, src.PrivateKey)
+	}
 }
 
 func (vault *IdentityVault) DeleteIdentity(id []byte) bool {
@@ -194,6 +210,7 @@ func (vault *IdentityVault) Export() []SavedCredentialSource {
 		}
 		sources = append(sources, savedSource)
 	}
+
 	return sources
 }
 
@@ -207,15 +224,30 @@ func (vault *IdentityVault) Import(sources []SavedCredentialSource) error {
 			}
 			key = &cose.SupportedCOSEPrivateKey{ECDSA: oldFormatKey}
 		}
-		decodedSource := CredentialSource{
+
+		// Crea copie profonde di RelyingParty e User
+		rpCopy := &webauthn.PublicKeyCredentialRPEntity{
+			ID:   source.RelyingParty.ID,
+			Name: source.RelyingParty.Name,
+		}
+
+		userCopy := &webauthn.PublicKeyCrendentialUserEntity{
+			ID:          source.User.ID,
+			Name:        source.User.Name,
+			DisplayName: source.User.DisplayName,
+		}
+
+		newCredentialSource := CredentialSource{
 			Type:             source.Type,
 			ID:               source.ID,
 			PrivateKey:       key,
-			RelyingParty:     &source.RelyingParty,
-			User:             &source.User,
+			RelyingParty:     rpCopy,
+			User:             userCopy,
 			SignatureCounter: source.SignatureCounter,
 		}
-		vault.AddIdentity(&decodedSource)
+
+		// Aggiungi la nuova CredentialSource al vault
+		vault.CredentialSources = append(vault.CredentialSources, &newCredentialSource)
 	}
 	return nil
 }

@@ -53,6 +53,7 @@ import json
 from datetime import datetime
 import asyncio
 
+
 # Connessione a MongoDB
 client = MongoClient('mongodb://localhost:27017/')
 db = client['DIDFIDO']
@@ -204,7 +205,7 @@ def upload_and_display_vp():
     # Carica la pagina HTML per il caricamento del file e visualizza i VC
     return  render_template('vcmanager.html', vcs=stored_vps)    
 
-@app.route('/vcmanager2')  # Cambiato da '/' a '/vcmanager'
+#@app.route('/vcmanager2')  # Cambiato da '/' a '/vcmanager'
 def upload_and_display_vc():
     # Verifica se il file di storage esiste, altrimenti crea un file vuoto
     if not os.path.exists(vc_storage_file):
@@ -246,7 +247,7 @@ def upload_and_display_vcvp():
     # Carica i VP dal file di storage
     with open(vp_storage_file, 'r') as file:
         stored_vps = json.load(file)
-
+   
     # Carica la pagina HTML per il caricamento del file e visualizza sia i VC che i VP
     return render_template('vcmanager.html', vcs=stored_vcs, vps=stored_vps,did_content= did_content)
 
@@ -269,7 +270,7 @@ def handle_upload():
             stored_vcs = []
         
         stored_vcs.append(vc_content)
-
+      
         # Salva l'aggiornamento dei VC nel file
         with open(vc_storage_file, 'w') as file:
             json.dump(stored_vcs, file)
@@ -313,6 +314,8 @@ async def getPublicKey():
         # Se il file non esiste, imposta il DID su None
         did = None
 
+def validateVP_blockchain():
+    vc_data = request.json
 
 def main():
    # print(__doc__)

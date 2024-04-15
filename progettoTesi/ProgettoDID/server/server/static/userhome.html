@@ -48,12 +48,13 @@
 </div>
 <div>
 <span style="margin: 0 100px;"></span>
-<a href="/api/downloadVC" id="downloadVC" style = "display: none";>Download VC</a>
+
+<button id = "downloadVC" onclick="downloadJSON()" style="display: none;">Download VC</button>
 </div>
 <p id="VC" style="display: none;"><p id="VCred"></p></p>
 <span style="margin: 0 100px;"></span> <!-- Aggiungi uno spazio di 10px tra i bottoni -->
 <div>
-<button class="issue-btn" onclick="verifyVC()" id="verifyVC" style ="display : none">Verifica verifiable_credential</button>
+<button class="issue-btn" onclick="verifyVC()" id="verifyVC" style ="display : block">Verifica verifiable_credential</button>
 </div>
 <div>
 <p id="result" style="display: none;"></p>
@@ -71,6 +72,36 @@
 <button class="issue-btn" id="VP_verify" style="display: none;" onclick="verifyVP()">Verifica VP</button>
 <p id="VP_verify_area"></p>
 </div>
+
+<script>
+    function downloadJSON() {
+       const data = JSON.parse(document.getElementById('VCred').innerText)
+       console.log( document.getElementById('VCred').innerText)
+        // Converti l'oggetto in formato JSON
+        const jsonData = JSON.stringify(data, null, 2);
+  
+        // Crea un oggetto Blob con il contenuto JSON
+        const blob = new Blob([jsonData], { type: 'application/json' });
+  
+        // Crea un URL temporaneo per il Blob
+        const url = window.URL.createObjectURL(blob);
+  
+        // Crea un elemento anchor per il download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'dati.json';
+  
+        // Simula un clic sull'elemento anchor per avviare il download
+        a.click();
+  
+        // Rilascia l'URL temporaneo
+        window.URL.revokeObjectURL(url);
+      }
+  
+      // Aggiungi un listener per il clic sul pulsante
+      document.getElementById('downloadButton').addEventListener('click', downloadJSON);
+  
+  </script>
 
 <script>
     // Funzione per simulare il caricamento delle VC dell'utente
@@ -100,10 +131,10 @@
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    let json = await response.json(); // Assicurati di convertire la risposta in JSON
-    verifiable_credential = json
+    verifiable_credential = await response.json(); // Assicurati di convertire la risposta in JSON
+
     document.getElementById('VCred').style.display = "block";
-    document.getElementById('VCred').textContent = JSON.stringify(json); // Mostra il JSON come stringa
+    document.getElementById('VCred').textContent = JSON.stringify(verifiable_credential); // Mostra il JSON come stringa
     document.getElementById('VC').style.display = "block";
     document.getElementById('verifyVC').style.display = "block";
     document.getElementById('downloadVC').style.display = "block"
