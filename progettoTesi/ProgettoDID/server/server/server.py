@@ -54,7 +54,7 @@ from datetime import datetime
 from web3 import Web3
 import json
 from eth_account import Account
-
+import asyncio
 
 serverKey = {
   "kty": "RSA",
@@ -215,8 +215,11 @@ def pem_to_jwk(file_path):
 
 def get_current_time():
     return datetime.now().replace(microsecond=0).isoformat() + "Z"
-
+issuer_name = 'issuer_server'
 def create_university_degree_vc(did,DIDUtente):
+    print("#############")
+    print(issuer_name)
+    print("#############")
     cred = {
         "@context": "https://www.w3.org/2018/credentials/v1",
         "id": "http://127.0.0.1:5001/universityDID",
@@ -230,6 +233,10 @@ def create_university_degree_vc(did,DIDUtente):
 
     return cred
 
+contract_address = '0x4d13C55283Fb372D58Cd7d510c689c047ca65ba7'
+abi = json.loads('[{"anonymous": false,"inputs": [{"indexed": true,"internalType": "string","name": "issuerName","type": "string"},{"indexed": false,"internalType": "string","name": "didDocument","type": "string"}],"name": "DIDDocumentAdded","type": "event"},{"anonymous": false,"inputs": [{"indexed": false,"internalType": "string","name": "name","type": "string"},{"indexed": false,"internalType": "string","name": "publicKey","type": "string"}],"name": "PublicKeyAdded","type": "event"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "issuer","type": "address"},{"indexed": true,"internalType": "uint256","name": "vcIndex","type": "uint256"},{"indexed": false,"internalType": "string","name": "vc","type": "string"}],"name": "VCPublished","type": "event"},{"inputs": [{"internalType": "string","name": "issuerName","type": "string"},{"internalType": "string","name": "didDocument","type": "string"}],"name": "addOrUpdateDIDDocument","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "string","name": "name","type": "string"},{"internalType": "string","name": "publicKey","type": "string"}],"name": "addPublicKey","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "string","name": "","type": "string"}],"name": "didDocuments","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "name","type": "string"}],"name": "getPublicKey","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"}],"name": "getVCCount","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "","type": "string"}],"name": "publicKeys","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "vc","type": "string"}],"name": "publishVC","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "string","name": "issuerName","type": "string"}],"name": "retrieveDIDDocument","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "uint256","name": "index","type": "uint256"}],"name": "retrieveVC","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "string","name": "content","type": "string"}],"name": "retrieveVCByContent","outputs": [{"internalType": "uint256","name": "","type": "uint256"},{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"name": "vcs","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"}]')
+
+
 def pubblica_vc_su_bc(verifiable_credential_signed):
 
     w3 = Web3(Web3.HTTPProvider('HTTP://127.0.0.1:7545'))
@@ -241,9 +248,7 @@ def pubblica_vc_su_bc(verifiable_credential_signed):
         exit()
 
     # Dati dello smart contract
-    contract_address = '0x194D5Dc83e14b0a7Ad6A7e6fE355d78758aCcc0e'
-    abi = json.loads('[{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "issuer","type": "address"},{"indexed": true,"internalType": "uint256","name": "vcIndex","type": "uint256"},{"indexed": false,"internalType": "string","name": "vc","type": "string"}],"name": "VCPublished","type": "event"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"}],"name": "getVCCount","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "vc","type": "string"}],"name": "publishVC","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "uint256","name": "index","type": "uint256"}],"name": "retrieveVC","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "string","name": "content","type": "string"}],"name": "retrieveVCByContent","outputs": [{"internalType": "uint256","name": "","type": "uint256"},{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"name": "vcs","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"}] ')
-
+   
     # Creazione dell'istanza dello smart contract
     contract = w3.eth.contract(address=contract_address, abi=abi)
 
@@ -259,9 +264,7 @@ def pubblica_vc_su_bc(verifiable_credential_signed):
     ethereum_address = account.address
 
     vc_string = json.dumps(verifiable_credential_signed)
-    print("####")
-    print(json.loads(vc_string))
-    print("####")
+   
 
     # Preparazione della transazione
     nonce = w3.eth.get_transaction_count(ethereum_address)
@@ -306,22 +309,69 @@ async def issueVC():
         json.dumps(cred),
         json.dumps({}),
         key)
-#    print(f"Signed Credentials: {json.loads(verifiable_credential_signed)}")
-    #recuperare indice specifico della VC
-  
 
     verfiableCredentials = verifiable_credential_signed
     index = pubblica_vc_su_bc(verifiable_credential_signed)
     return json.dumps(verifiable_credential_signed)
 
 
-def main():
+
+async def pubblica_did_document():
+
+    key_file = "server_private_key.pem"
+    key = pem_to_jwk(key_file)
+    did_server = didkit.key_to_did("key",key)
+    input_metadata = '{"context": "https://www.w3.org/ns/did/v1"}'
+    did_server_document = await didkit.resolve_did(did_server,input_metadata)
+    print(did_server_document)
+    name = "Issuer_numero_1"
+    public_key = str(json.loads(key)["x"]+":"+json.loads(key)["y"])
+    print(type(public_key))
+    print(public_key)
+    
+
+    w3 = Web3(Web3.HTTPProvider('HTTP://127.0.0.1:7545'))    # Verifica della connessione
+    if w3.is_connected():
+        print("Connesso alla blockchain Ethereum.")
+    else:
+        print("Non connesso alla blockchain Ethereum.")
+        exit()
+    
+
+    contract = w3.eth.contract(address=contract_address, abi=abi)
+
+   
+    account_address = '0x9f94951c1C6118027fB69B4d9A88d30e0ebFcee1'
+    private_key = '0x33c77c244f913d5a6e615dce5cca6bb9b52816c2ebd58dcd522e88c2987007d8'
+    # Prepara la transazione
+    nonce = w3.eth.get_transaction_count(account_address)
+    transaction = contract.functions.addOrUpdateDIDDocument(issuer_name,did_server_document).build_transaction({
+        'chainId': 1337,
+        'gas': 2000000,
+        'gasPrice': w3.to_wei('50', 'gwei'),
+        'nonce': nonce,
+    })
+
+    # Firma e invia la transazione
+    signed_txn = w3.eth.account.sign_transaction(transaction, private_key=private_key)
+    txn_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+
+    # Ottieni l'hash della transazione
+    print("Hash della transazione:", w3.to_hex(txn_hash))
+    return
+
+
+
+
+async def main():
    # print(__doc__)
     #app.run(ssl_context=None, debug=True, port=5001)
+    await pubblica_did_document()
     
     app.run(ssl_context=("./localhost.crt","./localhost.key"), debug=True,port=5001)
     #app.run(ssl_context=None, debug=True,port=5001)
-
+    
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
+    

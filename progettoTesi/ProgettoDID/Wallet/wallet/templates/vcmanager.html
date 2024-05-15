@@ -116,12 +116,30 @@
         }
       }
 
+    async function verifica_chiave_pubblica(vp){
+      try{
+        const response = await fetch('http://localhost:5002/valida_chiave_pubblica', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Impostazione dell'header per indicare che il corpo della richiesta è un JSON.
+            },
+            body: JSON.stringify(vp) // Converte l'oggetto JavaScript in una stringa JSON.
+        })
+        if (!response.ok) {
+         throw new Error(`HTTP error! status: ${response.status}`);
+       }
+       const data = await response.json();
+       console.log()
+       alert("Risultati validazione: " +  JSON.stringify(data['Response'], null, 2))
+         }catch (error){
+            console.error("Errore durante la validazione della VP: ", error)
+        }
     
+    }
 
     async function validaVP(vp,did){
       
-      console.log(did)
-      try{
+       try{
         const response = await fetch('http://localhost:5002/validateVP', {
             method: 'POST',
             headers: {
@@ -142,11 +160,44 @@
 
     }
 
+    
+  
     window.start = start;
     window.validaVP = validaVP;
     window.validaVP_blockchain = validaVP_blockchain;
-
+    window.verifica_chiave_pubblica = verifica_chiave_pubblica;
   </script>
+
+<script>
+function downloadJSON(vp) {
+    const jsonData = JSON.stringify(vp, null, 2); // Serializza il JSON mantenendo il formato originale
+
+    // Crea un oggetto Blob con il contenuto JSON
+    const blob = new Blob([jsonData], { type: 'application/json' });
+
+    // Crea un URL temporaneo per il Blob
+    const url = window.URL.createObjectURL(blob);
+
+    // Crea un elemento anchor per il download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'VP.json';
+
+    // Simula un clic sull'elemento anchor per avviare il download
+    a.click();
+
+    // Rilascia l'URL temporaneo
+    window.URL.revokeObjectURL(url);
+}
+
+  // Aggiungi un listener per il clic sul pulsante
+  document.getElementById('downloadButton').addEventListener('click', function() {
+      const vp = JSON.parse(document.getElementById('VCred').innerText);
+      downloadJSON(vp);
+  });
+
+  // Altre funzioni...
+</script>
 
 
 </head>
@@ -189,7 +240,13 @@
               <button type="button" class="btn btn-secondary" data-vp='{{ vp }}'  data-did='{{ did_content }}' onclick="validaVP(this.getAttribute('data-vp'),this.getAttribute('data-did'))">Valida VP</button>
               <br>
               <button type="button"  class="btn btn-secondary" data-vp='{{ vp }}' onclick="validaVP_blockchain(this.getAttribute('data-vp'))">Valida VP Su blockchain</button>   
-              </div>
+              <br>
+              <button type="button"  class="btn btn-secondary" data-vp='{{ vp }}' onclick="verifica_chiave_pubblica(this.getAttribute('data-vp'))">Verifica chiave pubblica</button>
+              <br>
+              <button type="button"  class="btn btn-secondary" data-vp='{{ vp }}' onclick="downloadJSON(this.getAttribute('data-vp'))">Download VP</button>
+              <br>
+            </div>
+
           {% endfor %}
     </div>
 </body>

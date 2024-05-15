@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@spruceid/didkit-wasm": "^0.2.1"
+  }
+}

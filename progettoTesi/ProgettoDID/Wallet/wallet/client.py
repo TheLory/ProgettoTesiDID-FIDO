@@ -110,9 +110,9 @@ def genereateDidFromPEM():
 ethereum_address = '0xE599D021BDD45ed5605e5aC8FF3DC02C14bB9e99'
 private_key = '0x8d7443ef4d024e3217bc969fe957ed2ee2d72b805c91f4ec9a41e29006a0d9ca'
 
-contract_address = '0x194D5Dc83e14b0a7Ad6A7e6fE355d78758aCcc0e'
-abi = json.loads('[{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "issuer","type": "address"},{"indexed": true,"internalType": "uint256","name": "vcIndex","type": "uint256"},{"indexed": false,"internalType": "string","name": "vc","type": "string"}],"name": "VCPublished","type": "event"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"}],"name": "getVCCount","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "vc","type": "string"}],"name": "publishVC","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "uint256","name": "index","type": "uint256"}],"name": "retrieveVC","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "string","name": "content","type": "string"}],"name": "retrieveVCByContent","outputs": [{"internalType": "uint256","name": "","type": "uint256"},{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"name": "vcs","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"}]')
-
+contract_address = '0x4d13C55283Fb372D58Cd7d510c689c047ca65ba7'
+abi = json.loads('[{"anonymous": false,"inputs": [{"indexed": true,"internalType": "string","name": "issuerName","type": "string"},{"indexed": false,"internalType": "string","name": "didDocument","type": "string"}],"name": "DIDDocumentAdded","type": "event"},{"anonymous": false,"inputs": [{"indexed": false,"internalType": "string","name": "name","type": "string"},{"indexed": false,"internalType": "string","name": "publicKey","type": "string"}],"name": "PublicKeyAdded","type": "event"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "issuer","type": "address"},{"indexed": true,"internalType": "uint256","name": "vcIndex","type": "uint256"},{"indexed": false,"internalType": "string","name": "vc","type": "string"}],"name": "VCPublished","type": "event"},{"inputs": [{"internalType": "string","name": "issuerName","type": "string"},{"internalType": "string","name": "didDocument","type": "string"}],"name": "addOrUpdateDIDDocument","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "string","name": "name","type": "string"},{"internalType": "string","name": "publicKey","type": "string"}],"name": "addPublicKey","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "string","name": "","type": "string"}],"name": "didDocuments","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "name","type": "string"}],"name": "getPublicKey","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"}],"name": "getVCCount","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "","type": "string"}],"name": "publicKeys","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "string","name": "vc","type": "string"}],"name": "publishVC","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "string","name": "issuerName","type": "string"}],"name": "retrieveDIDDocument","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "uint256","name": "index","type": "uint256"}],"name": "retrieveVC","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "issuer","type": "address"},{"internalType": "string","name": "content","type": "string"}],"name": "retrieveVCByContent","outputs": [{"internalType": "uint256","name": "","type": "uint256"},{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"name": "vcs","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"}]')
+ 
 infura_url = 'http://127.0.0.1:7545'
 
 @app.route('/validateVP_blockchain',methods=['POST'])
@@ -122,9 +122,7 @@ def validateVP_blockchain():
     vp_json = json.loads(vp)
     vc_json= vp_json["verifiableCredential"][0]
     vc = json.dumps(vc_json)
-    print("##")
-    print(vc.replace(" ",""))
-    print("##")
+   
     web3 = Web3(Web3.HTTPProvider(infura_url))
     if web3.is_connected():
         print("Connesso a Ethereum")
@@ -205,6 +203,7 @@ async def issueVP():
         "proofPurpose": "authentication",
         "verificationMethod": verification_method,
     }
+    
     # Creare la verifiable presentation utilizzando DIDKit
     presentation = await didkit.issue_presentation(json.dumps(vp,ensure_ascii=False, indent=4), json.dumps(options,ensure_ascii=False,indent=4) , key)
     verifiablePresentation= presentation
@@ -229,23 +228,41 @@ async def issueVP():
     publish_vp_on_bc(presentation)
     return presentation
 
+@app.route('/valida_chiave_pubblica',methods = ['POST'])
+async def valida_chiave_pubblica():
+    vp = request.json
+    print(vp)
+    vp_dict = json.loads(vp)
+    print(vp_dict)
+    issuer_did = vp_dict['verifiableCredential'][0]['issuer']
+
+    web3 = Web3(Web3.HTTPProvider(infura_url))
+    if web3.is_connected():
+        print("Connesso a Ethereum")
+    else:
+        print("Non connesso a Ethereum")
+    contract = web3.eth.contract(address=contract_address, abi=abi)
+    
+    did_document = contract.functions.retrieveDIDDocument('issuer_server').call()
+    issuer_did_bc = json.loads(did_document)['id']
+    if (issuer_did == issuer_did_bc):
+        return {"Response": "le chiavi corrispondono"}
+    else:
+        return{"Response": "Le chiavi NON corrispondoo"}
+        
+
 
 @app.route('/validateVP', methods=['POST'])
 async def verify_vp():
     
     vp = request.json
-
     did = ""
-    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-    print(vp)
-    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-    with open('wallet_did', 'r') as file:
-    # Leggo i contenuti del file
-         did = file.readline().strip()
 
-    # Decodifico il contenuto JSON in un dizionario Python
-   
-    public_key = await didkit.resolve_did(did,"{}")
+    vp_dict = json.loads(vp)
+    extracted_did = vp_dict['proof']['verificationMethod']
+    verification_did = extracted_did.split('#')[0]
+    print(verification_did)
+    public_key = await didkit.resolve_did(verification_did,"{}")
 
     # Converti la stringa JSON in un dizionario Python
     data = json.loads(public_key)
@@ -352,8 +369,6 @@ def recuperaChiavePrivata():
         key = jwk_key
     
         did = didkit.key_to_did("key",jwk_key)
-        print(did)
-        print("################")
         return jsonify({'jwk': jwk_key}), 200
     except Exception as e:
         return jsonify({'errore': str(e)}), 400
