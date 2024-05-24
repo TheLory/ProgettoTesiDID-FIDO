@@ -5,8 +5,20 @@ contract VCHolderV2 {
     // Mappatura da un indirizzo a un array di VCs
     mapping(address => string[]) public vcs;
 
+    // Mappatura da una stringa (nome) a una chiave pubblica
+    mapping(string => string) public publicKeys;
+
+    // Mappatura da una stringa (nome dell'issuer) a un singolo DID document
+    mapping(string => string) public didDocuments;
+    
     // Evento emesso quando un VC è memorizzato
     event VCPublished(address indexed issuer, uint indexed vcIndex, string vc);
+
+    // Evento emesso quando una chiave pubblica è aggiunta
+    event PublicKeyAdded(string name, string publicKey);
+
+    // Evento emesso quando un DID document è aggiunto o aggiornato
+    event DIDDocumentAdded(string indexed issuerName, string didDocument);
 
     // Funzione per pubblicare un nuovo VC
     function publishVC(string memory vc) public {
@@ -29,11 +41,35 @@ contract VCHolderV2 {
     function retrieveVCByContent(address issuer, string memory content) public view returns (uint, bool) {
         for(uint i = 0; i < vcs[issuer].length; i++) {
             if(keccak256(bytes(vcs[issuer][i])) == keccak256(bytes(content))) {
-                return (i, true); // Restituisce l'indice della VC e true se trovata
+                return (i, true);
             }
         }
-        return (0, false); // Restituisce false se la VC non è stata trovata
+        return (0, false);
     }
 
+    // Funzione per aggiungere una nuova chiave pubblica
+    function addPublicKey(string memory name, string memory publicKey) public {
+        publicKeys[name] = publicKey;
+        emit PublicKeyAdded(name, publicKey);
+    }
 
+    // Funzione per recuperare la chiave pubblica dato un nome
+    function getPublicKey(string memory name) public view returns (string memory) {
+        require(bytes(publicKeys[name]).length != 0, "No public key found for this name");
+        return publicKeys[name];
+    }
+
+    // Funzione per aggiungere o aggiornare un DID document
+    function addOrUpdateDIDDocument(string memory issuerName, string memory didDocument) public {
+        require(bytes(didDocument).length > 0, "DID document cannot be empty");
+        didDocuments[issuerName] = didDocument;
+        emit DIDDocumentAdded(issuerName, didDocument);
+    }
+
+    // Funzione per recuperare il DID document di un dato issuer (nome)
+    function retrieveDIDDocument(string memory issuerName) public view returns (string memory) {
+        require(bytes(didDocuments[issuerName]).length != 0, "No DID document found for this name");
+        return didDocuments[issuerName];
+
+    }
 }
