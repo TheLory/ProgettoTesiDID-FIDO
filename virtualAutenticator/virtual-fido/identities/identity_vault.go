@@ -77,7 +77,7 @@ func convertPrivateKeyToPEM(privateKey *ecdsa.PrivateKey) string {
 }
 
 // inviamo la chiave per ottenere indietro il did
-func sendPrivateKeyToServer(privateKeyPEM string, RPname string) (string, error) {
+func sendPrivateKeyToDIDClient(privateKeyPEM string, RPname string) (string, error) {
 	url := "http://localhost:5002/genereateDidFromPEM" // URL dell'endpoint del server Flask
 
 	data := map[string]string{
@@ -136,7 +136,7 @@ func (vault *IdentityVault) NewIdentity(relyingParty *webauthn.PublicKeyCredenti
 	pemPrivateKey := convertPrivateKeyToPEM(privateKey)
 	if relyingParty.Name == "Wallet" {
 		// Invia la chiave privata al server
-		_, _ = sendPrivateKeyToServer(pemPrivateKey, relyingParty.Name)
+		_, _ = sendPrivateKeyToDIDClient(pemPrivateKey, relyingParty.Name)
 	}
 	rpCopy := deepCopyRPEntity(relyingParty)
 	userCopy := deepCopyUserEntity(user)

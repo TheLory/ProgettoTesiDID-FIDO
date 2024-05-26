@@ -128,7 +128,7 @@
     async function verifyVC(vc) {
     let resp;
     try {
-        resp = await fetch('http://localhost:5002/verifyVC', {
+        resp = await fetch('http://localhost:5005/verifyVC', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json' // Impostazione dell'header per indicare che il corpo della richiesta è un JSON.
@@ -150,50 +150,6 @@
     }
 }
 
-    async function issueVP(){
-    try{
-        
-        resp = await fetch('http://localhost:5002/issueVP', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json' // Impostazione dell'header per indicare che il corpo della richiesta è un JSON.
-            },
-            body: JSON.stringify(verifiable_credential) // Converte l'oggetto JavaScript in una stringa JSON.
-        })
-        if (!response.ok) {
-         throw new Error(`HTTP error! status: ${response.status}`);
-       }
-       const data = await resp.json();
-       verifiable_presentation = data
-     
-       document.getElementById("VParea").innerHTML = JSON.stringify(data)
-       document.getElementById("VP_verify").style = "block"
-       document.getElementById("downlaodVP").style = "block"
-    }catch (error){
-            console.error("Errore durante la realizzazione della VP: ", error)
-        }
-    }
-
-    async function verifyVP(){
-        try{
-        resp = await fetch('http://localhost:5002/validateVP', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json' // Impostazione dell'header per indicare che il corpo della richiesta è un JSON.
-            },
-            body: JSON.stringify(verifiable_presentation) // Converte l'oggetto JavaScript in una stringa JSON.
-        })
-        if (!response.ok) {
-         throw new Error(`HTTP error! status: ${response.status}`);
-       }
-       const data = await resp.json();
-       console.log(data)
-       document.getElementById("VP_verify_area").innerHTML = JSON.stringify(data)
-    }catch (error){
-            console.error("Errore durante la validazione della VP: ", error)
-        }
-    }
-    
 
     // Carica le VC dell'utente al caricamento della pagina
     window.onload = function() {

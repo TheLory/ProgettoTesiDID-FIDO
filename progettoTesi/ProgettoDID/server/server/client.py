@@ -137,8 +137,6 @@ def validateVP_blockchain():
 
     return {"Response": result}
 
-
-#probabile che sia da togliere
 def publish_vp_on_bc(vp):
     # Connessione a Web3
     #w3 = Web3.HTTPProvider('https://mainnet.infura.io/v3/8f16a40523dd407fbc5fca53a10a8bb7'))
@@ -376,4 +374,4 @@ def recuperaChiavePrivata():
         return jsonify({'errore': str(e)}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=5005)
