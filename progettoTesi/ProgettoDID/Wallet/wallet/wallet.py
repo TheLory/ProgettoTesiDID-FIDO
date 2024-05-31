@@ -307,9 +307,7 @@ async def getPublicKey():
             # Leggi il contenuto del file e assegna il DID alla variabile did
             did_wallet_persistent = file.read().strip()
             publick_key_wallet = await didkit.resolve_did(did_wallet_persistent,"{}")
-            print("############")
-            print("Chiave pubblica del did: ", publick_key_wallet,"")
-            print("############")
+          
     except FileNotFoundError:
         # Se il file non esiste, imposta il DID su None
         did = None
@@ -321,7 +319,7 @@ def main():
    # print(__doc__)
     #app.run(ssl_context=None, debug=True, port=5003)
     asyncio.run(getPublicKey())
-    app.run(ssl_context=("./cert.pem","./key.pem"), debug=True,port=5003)
+    app.run(ssl_context=("./cert.pem","./key.pem"), debug=True,port=5003,host="0.0.0.0")
     #app.run(ssl_context=None, debug=True,port=5001)
 
 

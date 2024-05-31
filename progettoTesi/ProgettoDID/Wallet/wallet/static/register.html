@@ -37,7 +37,7 @@
 	      body: JSON.stringify(response),
       });
 
-      let stat = result.ok ? 'successful' : 'unsuccessful';
+      let stat = result.ok ? 'successful' : 'not working properly';
       alert('Registration ' + stat + ' More details in server log...');
        window.location = '/';
     }
@@ -66,7 +66,7 @@
     <input type="text" id="username" name="username" required><br>
     <label for="displayname">Display Name:</label>
     <input type="text" id="displayname" name="displayname" required><br>
-    <button type="button" onclick="start();">Click here to start</button>
+    <button id=register type="button" onclick="start();">Click here to start</button>
   </form>
   </div>
 

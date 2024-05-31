@@ -35,12 +35,12 @@
       alert('Autenticazione fallita: ' + errorMsg);
     } else {
       // In caso di successo, mostra un alert e reindirizza.
-      alert('Autenticazione avvenuta con successo. Ulteriori dettagli nel log del server...');
+      alert('Authentication successful more details in server log...');
       window.location.href = '/vcmanager';
     }
   } catch (error) {
     // Gestisce eventuali errori nell'intero flusso di autenticazione, inclusi errori di rete ecc.
-    alert('Errore di autenticazione: ' + error.message);
+    alert('Authentication not working properly more details in server log...');
   }
 }
 
@@ -63,7 +63,7 @@
 
   <h2>Authenticate using a credential</h2>
   <div id="initial">
-    <button onclick="start();">Click here to start</button>
+    <button id="authenticate" onclick="start();">Click here to start</button>
   </div>
   <div id="started", style="display: none;">
     <p>Touch your authenticator device now...</p>

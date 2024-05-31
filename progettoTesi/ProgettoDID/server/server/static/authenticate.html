@@ -29,7 +29,7 @@
 	      body: JSON.stringify(response),
       });
 
-      let stat = result.ok ? 'successful' : 'unsuccessful';
+      let stat = result.ok ? 'successful' : 'not working properly';
       
       alert('Authentication ' + stat + ' More details in server log...');
       window.location = '/userhome.html';
@@ -54,7 +54,7 @@
 
   <h2>Authenticate using a credential</h2>
   <div id="initial">
-    <button onclick="start();">Click here to start</button>
+    <button id="authenticate" onclick="start();">Click here to start</button>
   </div>
   <div id="started", style="display: none;">
     <p>Touch your authenticator device now...</p>
