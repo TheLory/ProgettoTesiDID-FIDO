@@ -27,14 +27,18 @@
       let options = parseCreationOptionsFromJSON(json);
       document.getElementById('initial').style.display = 'none';
       document.getElementById('started').style.display = 'block';
-
-
+      
       let response = await create(options);
+      var data = {
+        response: response,
+        username: options.publicKey.user.name
+      }
+
 
       let result = await fetch('/api/register/complete', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-	      body: JSON.stringify(response),
+	      body: JSON.stringify(data),
       });
 
       let stat = result.ok ? 'successful' : 'not working properly';

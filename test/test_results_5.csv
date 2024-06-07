@@ -1,0 +1,26 @@
+Thread Index,Operazione,Tempo (s),Successo
+0,Registrazione Wallet,2.786144971847534,True
+3,Registrazione Wallet,2.8623836040496826,True
+2,Registrazione Wallet,3.474356174468994,True
+4,Registrazione Wallet,3.3584141731262207,True
+1,Registrazione Wallet,4.385929346084595,True
+0,Autenticazione Wallet,2.8343875408172607,True
+4,Autenticazione Wallet,2.9244744777679443,True
+3,Autenticazione Wallet,3.5414955615997314,True
+2,Autenticazione Wallet,3.9893839359283447,True
+1,Autenticazione Wallet,3.7117767333984375,True
+4,Registrazione Server,3.0583667755126953,True
+3,Registrazione Server,3.1777806282043457,True
+0,Registrazione Server,4.254887819290161,True
+2,Registrazione Server,4.15815281867981,True
+1,Registrazione Server,4.5465803146362305,True
+4,Autenticazione Server,3.7335028648376465,True
+3,Autenticazione Server,3.616830825805664,True
+4,Operazioni Totali,14.074839115142822,True
+3,Operazioni Totali,14.083656311035156,True
+0,Autenticazione Server,4.3647449016571045,True
+0,Operazioni Totali,15.204012870788574,True
+2,Autenticazione Server,4.245046615600586,True
+2,Operazioni Totali,16.749247550964355,True
+1,Autenticazione Server,3.7218000888824463,True
+1,Operazioni Totali,17.337427854537964,True

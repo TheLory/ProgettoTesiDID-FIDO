@@ -9,9 +9,13 @@
     } from '/webauthn-json.browser-ponyfill.js';
 
     async function start() {
+    const username = document.getElementById('username').value;
+
   try {
     let request = await fetch('/api/authenticate/begin', {
       method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username: username}),
     });
     if (!request.ok) {
       throw new Error('Inizio autenticazione fallito. Nessuna credenziale disponibile per autenticarsi!');
@@ -63,6 +67,8 @@
 
   <h2>Authenticate using a credential</h2>
   <div id="initial">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username">
     <button id="authenticate" onclick="start();">Click here to start</button>
   </div>
   <div id="started", style="display: none;">

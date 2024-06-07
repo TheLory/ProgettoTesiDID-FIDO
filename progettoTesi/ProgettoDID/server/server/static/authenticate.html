@@ -9,36 +9,40 @@
     } from '/webauthn-json.browser-ponyfill.js';
 
     async function start() {
-     
+      const username = document.getElementById('username').value;
 
       let request = await fetch('/api/authenticate/begin', {
         method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username: username}),
       });
+
       if(!request.ok) {
         throw new Error('No credential available to authenticate!');
       }
+      
       let json = await request.json();
-      console.log(json)
+      console.log(json);
       let options = parseRequestOptionsFromJSON(json);
-      console.log(options)
+      console.log(options);
       let response = await get(options);
 
       let result = await fetch('/api/authenticate/complete', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-	      body: JSON.stringify(response),
-      });
+        body: JSON.stringify(response),
+      }); 
 
       let stat = result.ok ? 'successful' : 'not working properly';
       
       alert('Authentication ' + stat + ' More details in server log...');
-      window.location = '/userhome.html';
+      if (result.ok){
+        window.location = '/userhome.html';
+      }
     }
 
     window.start = start;
   </script>
-
-
 
   <style>
     body { font-family: sans-serif; line-height: 1.5em; padding: 2em 10em; }
@@ -54,9 +58,11 @@
 
   <h2>Authenticate using a credential</h2>
   <div id="initial">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username">
     <button id="authenticate" onclick="start();">Click here to start</button>
   </div>
-  <div id="started", style="display: none;">
+  <div id="started" style="display: none;">
     <p>Touch your authenticator device now...</p>
     <a href="/">Cancel</a>
   </div>

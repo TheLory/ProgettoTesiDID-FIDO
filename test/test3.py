@@ -9,14 +9,25 @@ from selenium.webdriver.support import expected_conditions as EC
 
 import threading
 import time
+import random
+import csv
 from colorama import Fore, Style, init
 
 init(autoreset=True)
 
 WALLET_URL = "https://localhost:5003/index.html"
 SERVER_URL = "https://localhost:5001/index.html"
+CSV_FILE = "test_results_nuovo_10.csv"
+
+# Funzione per scrivere i risultati nel file CSV
+def scrivi_risultato_csv(index, operazione, tempo, successo):
+    with open(CSV_FILE, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([index, operazione, tempo, successo])
 
 def esegui_registrazione_server(driver, index):
+    start_time = time.time()
+    successo = False
     try:
         print(f"[SERVER] Thread {index}: Inizio registrazione")
         driver.get(SERVER_URL)
@@ -30,29 +41,41 @@ def esegui_registrazione_server(driver, index):
         click_element(driver, By.ID, 'register')
         if handle_alert(driver, "Registration successful"):
             print(Fore.GREEN + f"[SERVER] Registrazione nella scheda {index} completata con successo.")
+            successo = True
         else:
             print(Fore.RED + f"[SERVER] Registrazione nella scheda {index} fallita.")
     except Exception as e:
         print(Fore.RED + f"[SERVER] Errore nella registrazione scheda {index}: {e}")
-
+    finally:
+        end_time = time.time()
+        scrivi_risultato_csv(index, "Registrazione Server", end_time - start_time, successo)
 
 def esegui_autenticazione_server(driver, index):
+    start_time = time.time()
+    successo = False
     try:
         print(f"[SERVER] Thread {index}: Inizio autenticazione")
         driver.get(SERVER_URL)
         WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "authenticate")))
         click_element(driver, By.ID, 'authenticate')
+        driver.find_element(By.ID, 'username').send_keys("loritest_server"+str(index))
+
         click_element(driver, By.ID, 'authenticate')
 
         if handle_alert(driver, "Authentication successful"):
             print(Fore.GREEN + f"[SERVER] Autenticazione nella scheda {index} completata con successo.")
+            successo = True
         else:
             print(Fore.RED + f"[SERVER] Autenticazione nella scheda {index} fallita.")
     except Exception as e:
         print(Fore.RED + f"[SERVER] Errore nell'autenticazione scheda {index}: {e}")
-
+    finally:
+        end_time = time.time()
+        scrivi_risultato_csv(index, "Autenticazione Server", end_time - start_time, successo)
 
 def esegui_registrazione_wallet(driver, index):
+    start_time = time.time()
+    successo = False
     try:
         print(f"[WALLET] Thread {index}: Inizio registrazione")
         driver.get(WALLET_URL)
@@ -66,30 +89,41 @@ def esegui_registrazione_wallet(driver, index):
         click_element(driver, By.ID, 'register')
         if handle_alert(driver, "Registration successful"):
             print(Fore.GREEN + f"[WALLET] Registrazione nella scheda {index} completata con successo.")
+            successo = True
         else:
             print(Fore.RED + f"[WALLET] Registrazione nella scheda {index} fallita.")
     except Exception as e:
         print(Fore.RED + f"[WALLET] Errore nella registrazione scheda {index}: {e}")
-
+    finally:
+        end_time = time.time()
+        scrivi_risultato_csv(index, "Registrazione Wallet", end_time - start_time, successo)
 
 def esegui_autenticazione_wallet(driver, index):
+    start_time = time.time()
+    successo = False
     try:
         print(f"[WALLET] Thread {index}: Inizio autenticazione")
         driver.get(WALLET_URL)
         WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "authenticate")))
         click_element(driver, By.ID, 'authenticate')
+        driver.find_element(By.ID, 'username').send_keys("loritest_server"+str(index))
         click_element(driver, By.ID, 'authenticate')
         if handle_alert(driver, "Authentication successful"):
             print(Fore.GREEN + f"[WALLET] Autenticazione nella scheda {index} completata con successo.")
+            successo = True
         else:
             print(Fore.RED + f"[WALLET] Autenticazione nella scheda {index} fallita.")
     except Exception as e:
         print(Fore.RED + f"[WALLET] Errore nell'autenticazione scheda {index}: {e}")
+    finally:
+        end_time = time.time()
+        scrivi_risultato_csv(index, "Autenticazione Wallet", end_time - start_time, successo)
 
 def click_element(driver, by, value, attempts=15):
     for attempt in range(attempts):
         try:
             element = driver.find_element(by, value)
+            time.sleep(random.uniform(0.5, 2.0))  # Delay randomico prima del click
             element.click()
             return
         except Exception as e:
@@ -109,12 +143,12 @@ def handle_alert(driver, expected_text):
         print(f"Errore nell'handle dell'alert: {e}")
         return False
 
-def eseguioperazioni_wallet(driver,index):
+def eseguioperazioni_wallet(driver, index):
     esegui_registrazione_wallet(driver, index)
     esegui_autenticazione_wallet(driver, index)
     return
 
-def eseguioperazioni_server(driver,index):
+def eseguioperazioni_server(driver, index):
     esegui_registrazione_server(driver, index)
     esegui_autenticazione_server(driver, index)
     return
@@ -125,22 +159,26 @@ def operazioni_thread(index):
     chrome_options = Options()
     chrome_options.add_argument('--ignore-certificate-errors')
     chrome_options.add_argument('--allow-insecure-localhost')
-    chrome_options.add_argument('--disable-gpu')
     chrome_options.add_argument('--headless')  # Disabilitare la modalità headless per il debug
     chrome_options.add_argument('--window-size=200,200')  # Aggiungere dimensione finestra per vedere cosa succede
 
     driver = Chrome(service=Service(chrome_driver), options=chrome_options)
     
-    eseguioperazioni_wallet(driver=driver,index=index)
-    
-    eseguioperazioni_server(driver=driver,index=index)
+    eseguioperazioni_wallet(driver=driver, index=index)
+    eseguioperazioni_server(driver=driver, index=index)
     
     driver.quit()
     end_time = time.time()
+    scrivi_risultato_csv(index, "Operazioni Totali", end_time - start_time, True)
     print(f"Operazioni nella scheda {index} completate in {end_time - start_time:.2f} secondi.")
 
 def main():
-    threads_number = 6  # Modificare a 1 thread per il debug
+    # Inizializzazione del file CSV
+    with open(CSV_FILE, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Thread Index", "Operazione", "Tempo (s)", "Successo"])
+
+    threads_number = 10  # Modificare a 1 thread per il debug
     threads = []
 
     for i in range(threads_number):
@@ -151,4 +189,5 @@ def main():
     for thread in threads:
         thread.join()
 
-main()
+if __name__ == "__main__":
+    main()

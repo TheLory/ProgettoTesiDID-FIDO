@@ -133,23 +133,26 @@ def register_begin():
 def register_complete():
     response = request.json
     print("RegistrationResponse:", response)
-    auth_data = server.register_complete(session["state"], response)
-    print("REGISTERED CREDENTIAL:", auth_data.credential_data)
+    auth_data = server.register_complete(session["state"], response['response'])
     attested_cred_data = auth_data.credential_data
     attested_cred_data_serialized = pickle.dumps(attested_cred_data)
-    collection.insert_one({'data': attested_cred_data_serialized})
+    collection.insert_one({'data': attested_cred_data_serialized,'username' : response['username']})
     global credentials
     credentials = getCredentialFromMongo()
-    
     return jsonify({"status": "OK"})
 
 def getCredentialFromMongo():
     updatedCredentials = []
-    retrieved_document = collection.find()
-    for element in retrieved_document:     
+    retrieved_documents = collection.find()
+    for element in retrieved_documents:     
         attested_cred_data_serialized = element['data']
+        username = element['username']
+        
         attested_cred_data_retrieved = pickle.loads(attested_cred_data_serialized)
-        updatedCredentials.append(attested_cred_data_retrieved)
+        updatedCredentials.append({
+            'credential_data': attested_cred_data_retrieved,
+            'username': username
+        })
 
     return updatedCredentials
 
@@ -160,8 +163,11 @@ def authenticate_begin():
         credentials = getCredentialFromMongo()
     if not credentials:
         abort(405)
-    print(credentials)
-    options, state = server.authenticate_begin(credentials)
+    username = request.json.get('username')
+  #  credential_data_list = [cred["credential_data"] for cred in credentials]
+    credential_data = next((cred["credential_data"] for cred in credentials if cred["username"] == f"b'{username}'"), None)
+
+    options, state = server.authenticate_begin([credential_data])
     session["state"] = state
     
     return jsonify(dict(options))
@@ -173,10 +179,11 @@ def authenticate_complete():
         abort(404)
     
     response = request.json
-    print("AuthenticationResponse:", response)
+   # print("AuthenticationResponse:", response)
+    credential_data_list = [cred["credential_data"] for cred in credentials]
     server.authenticate_complete(
         session.pop("state"),
-        credentials,
+        credential_data_list,
         response,
     )
     print("ASSERTION OK")
