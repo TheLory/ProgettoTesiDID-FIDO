@@ -24,7 +24,7 @@
 
     function inviaRichiestaVP() {
         return new Promise((resolve, reject) => {
-        const url = "http://localhost:5002/api/richiediVP";
+        const url = "/api/richiediVP";
 
         fetch(url, {
           method: 'GET',
@@ -80,7 +80,7 @@
       alert('Authentication ' + stat + ' More details in server log...');
     
         // Inviare la VC a /issueVP
-    let vpRequest = await fetch('http://localhost:5002/issueVP', {
+    let vpRequest = await fetch('/issueVP', {
         method: 'POST',
         headers: {
         'Content-Type': 'application/json'

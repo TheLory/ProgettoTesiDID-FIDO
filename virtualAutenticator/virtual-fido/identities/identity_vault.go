@@ -7,7 +7,8 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"net/http"
+	"net"
+	"time"
 
 	"github.com/bulwarkid/virtual-fido/cose"
 	"github.com/bulwarkid/virtual-fido/crypto"
@@ -76,10 +77,60 @@ func convertPrivateKeyToPEM(privateKey *ecdsa.PrivateKey) string {
 	return string(pem.EncodeToMemory(pemBlock))
 }
 
-// inviamo la chiave per ottenere indietro il did
 func sendPrivateKeyToDIDClient(privateKeyPEM string, RPname string) (string, error) {
-	url := "http://localhost:5002/genereateDidFromPEM" // URL dell'endpoint del server Flask
+	data := map[string]string{
+		"privateKeyPEM": privateKeyPEM,
+		"RPname":        RPname,
+	}
+	payload, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
 
+	// Connessione alla socket del demone
+	conn, err := net.DialTimeout("tcp", "localhost:65433", 5*time.Second)
+	if err != nil {
+		return "", fmt.Errorf("Errore di connessione al demone: %v", err)
+	}
+	defer conn.Close()
+
+	// Inviare i dati attraverso la socket
+	_, err = conn.Write(payload)
+	if err != nil {
+		return "", fmt.Errorf("Errore durante l'invio dei dati al demone: %v", err)
+	}
+
+	// Ricevere la risposta dal demone
+	response := make([]byte, 4096)
+	n, err := conn.Read(response)
+	if err != nil {
+		return "", fmt.Errorf("Errore durante la ricezione della risposta dal demone: %v", err)
+	}
+
+	// Deserializzare la risposta per ottenere il DID
+	var result map[string]interface{}
+	if err := json.Unmarshal(response[:n], &result); err != nil {
+		return "", fmt.Errorf("Errore durante la deserializzazione della risposta: %v", err)
+	}
+
+	// Verifica se la risposta contiene un errore
+	if errMsg, exists := result["error"]; exists {
+		return "", fmt.Errorf("Errore dal demone: %v", errMsg)
+	}
+
+	// Estrarre il DID dalla risposta
+	did, ok := result["did"].(string)
+	if !ok {
+		return "", fmt.Errorf("Risposta dal demone non contiene un DID valido")
+	}
+
+	return did, nil // Restituisce il DID come valore della funzione
+}
+
+// inviamo la chiave per ottenere indietro il did
+/*func sendPrivateKeyToDIDClient(privateKeyPEM string, RPname string) (string, error) {
+	url := "http://localhost:5003/genereateDidFromPEM" // URL dell'endpoint del server Flask
+	fmt.Println("######*#*#*##**#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#")
 	data := map[string]string{
 		"privateKeyPEM": privateKeyPEM,
 		"RPname":        RPname,
@@ -111,7 +162,7 @@ func sendPrivateKeyToDIDClient(privateKeyPEM string, RPname string) (string, err
 	}
 
 	return response.DID, nil // Restituisce il DID come valore della funzione
-}
+}*/
 
 func deepCopyRPEntity(rp *webauthn.PublicKeyCredentialRPEntity) *webauthn.PublicKeyCredentialRPEntity {
 	newRP := &webauthn.PublicKeyCredentialRPEntity{

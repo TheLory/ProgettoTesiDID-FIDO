@@ -55,6 +55,7 @@ from web3 import Web3
 import json
 from eth_account import Account
 import asyncio
+import socket
 
 serverKey = {
   "kty": "RSA",
@@ -295,8 +296,8 @@ def pubblica_vc_su_bc(verifiable_credential_signed):
 
     return index
 
-@app.route("/api/issueVC",methods = ["POST"])
-async def issueVC():
+@app.route("/api/issueVC_origin",methods = ["POST"])
+async def issueVC_origin():
     data = request.get_json()
     didUtente = data.get('did')
     global verfiableCredentials
@@ -319,6 +320,22 @@ async def issueVC():
     index = pubblica_vc_su_bc(verifiable_credential_signed)
     return json.dumps(verifiable_credential_signed)
 
+
+def send_to_socket_server(data, host='localhost', port=65432):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((host, port))
+        s.sendall(json.dumps(data).encode())
+        response = s.recv(4096)
+    return json.loads(response.decode())
+
+@app.route("/api/issueVC", methods=["POST"])
+async def issueVC():
+    data = request.get_json()
+    try:
+        response = send_to_socket_server(data)
+        return jsonify(response)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 async def pubblica_did_document():

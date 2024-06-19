@@ -105,7 +105,6 @@ def genereateDidFromPEM():
         return jsonify({"error": str(e)}), 400
 
 
-    vc_data = request.json
      
 ethereum_address = '0xE599D021BDD45ed5605e5aC8FF3DC02C14bB9e99'
 private_key = '0x8d7443ef4d024e3217bc969fe957ed2ee2d72b805c91f4ec9a41e29006a0d9ca'

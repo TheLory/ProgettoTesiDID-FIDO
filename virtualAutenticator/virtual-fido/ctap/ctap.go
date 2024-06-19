@@ -7,8 +7,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
+	"net"
+	"time"
 
 	"github.com/bulwarkid/virtual-fido/cose"
 	"github.com/bulwarkid/virtual-fido/crypto"
@@ -613,6 +613,93 @@ func (server *CTAPServer) handleGetPINToken(args clientPINArgs) []byte {
 	return append([]byte{byte(ctap1ErrSuccess)}, util.MarshalCBOR(response)...)
 }
 
+func sendToSocketServer(action string, data map[string]string, host string, port int) (map[string]interface{}, error) {
+	message := map[string]interface{}{
+		"action": action,
+		"data":   data,
+	}
+	payload, err := json.Marshal(message)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), 5*time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("errore di connessione al demone: %v", err)
+	}
+	defer conn.Close()
+
+	_, err = conn.Write(payload)
+	if err != nil {
+		return nil, fmt.Errorf("errore durante l'invio dei dati al demone: %v", err)
+	}
+
+	response := make([]byte, 4096)
+	n, err := conn.Read(response)
+	if err != nil {
+		return nil, fmt.Errorf("errore durante la ricezione della risposta dal demone: %v", err)
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(response[:n], &result); err != nil {
+		return nil, fmt.Errorf("errore durante la deserializzazione della risposta: %v", err)
+	}
+
+	return result, nil
+}
+
+func eseguiChiamate(curve, d, x, y string) error {
+	autorizzato, err := verificaRichiestaVP()
+	if err != nil {
+		return fmt.Errorf("errore nella chiamata a verificaRichiestaVP: %w", err)
+	}
+
+	if autorizzato {
+		fmt.Println("Autorizzato, procedo con la chiamata a recuperaChiavePrivata")
+		err := recuperaChiavePrivata(curve, d, x, y)
+		if err != nil {
+			return fmt.Errorf("errore nella chiamata a recuperaChiavePrivata: %w", err)
+		}
+	} else {
+		fmt.Println("Non autorizzato, non procedo con la seconda chiamata.")
+	}
+	return nil
+}
+
+func verificaRichiestaVP() (bool, error) {
+	response, err := sendToSocketServer("verifica_richiesta_vp", nil, "localhost", 65433)
+	if err != nil {
+		return false, err
+	}
+
+	if autorizzato, ok := response["autorizzato"].(bool); ok && autorizzato {
+		return true, nil
+	}
+	return false, fmt.Errorf("stato non autorizzato")
+}
+
+func recuperaChiavePrivata(curve, d, x, y string) error {
+	chiave := map[string]string{
+		"curve": curve,
+		"d":     d,
+		"x":     x,
+		"y":     y,
+	}
+	response, err := sendToSocketServer("recupera_chiave_privata", chiave, "localhost", 65433)
+	if err != nil {
+		return err
+	}
+
+	body, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Risposta da recupera_chiave_privata:", string(body))
+	return nil
+}
+
+/*
 func eseguiChiamate(curve, d, x, y string) error {
 	autorizzato, err := verificaRichiestaVP()
 	if err != nil {
@@ -670,3 +757,4 @@ func recuperaChiavePrivata(curve, d, x, y string) error {
 	fmt.Println("Risposta da /api/retrievePrivateKey:", string(body))
 	return nil
 }
+*/

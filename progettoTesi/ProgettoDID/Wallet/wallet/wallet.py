@@ -52,7 +52,7 @@ from bson.binary import Binary
 import json
 from datetime import datetime
 import asyncio
-
+import socket
 
 # Connessione a MongoDB
 client = MongoClient('mongodb://localhost:27017/')
@@ -105,7 +105,7 @@ def register_begin():
 @app.route("/api/register/complete", methods=["POST"])
 def register_complete():
     response = request.json
-    print("RegistrationResponse:", response)
+   # print("RegistrationResponse:", response)
     auth_data = server.register_complete(session["state"], response['response'])
   #  print("REGISTERED CREDENTIAL:", auth_data.credential_data)
     attested_cred_data = auth_data.credential_data
@@ -156,7 +156,7 @@ def authenticate_complete():
     response = request.json
     credential_data_list = [cred["credential_data"] for cred in credentials]
 
-    print("AuthenticationResponse:", response)
+  #  print("AuthenticationResponse:", response)
     server.authenticate_complete(
         session.pop("state"),
         credential_data_list,
@@ -234,9 +234,9 @@ def upload_and_display_vc():
 @app.route('/vcmanager')
 def upload_and_display_vcvp():
     # Verifica e crea il file di storage per VC se non esiste
-    if os.path.exists("wallet_did"):
+    if os.path.exists("wallet_did.txt"):
         # Leggi il contenuto del file "wallet_did"
-        with open("wallet_did", "r") as file:
+        with open("wallet_did.txt", "r") as file:
             did_content = file.read()
     else:
         # Se il file non esiste, impostiamo il contenuto del DID come vuoto
@@ -303,8 +303,7 @@ def genera_vp():
 
         # Processa la VC per generare un VP
         # Questo è un esempio, dovrai sostituirlo con la tua logica specifica
-        print(vc_data)  # Stampa o lavora con i dati della VC qui
-        return jsonify({"status": "success", "message": "VP generato correttamente."})
+         return jsonify({"status": "success", "message": "VP generato correttamente."})
     else:
         return jsonify({"status": "error", "message": "Nessun dato VC fornito."}), 400
 
@@ -314,7 +313,7 @@ async def getPublicKey():
     global wallet_public_key
     try:
         # Apri il file "wallet_did" in modalità lettura
-        with open("wallet_did", "r") as file:
+        with open("wallet_did.txt", "r") as file:
             # Leggi il contenuto del file e assegna il DID alla variabile did
             did_wallet_persistent = file.read().strip()
             publick_key_wallet = await didkit.resolve_did(did_wallet_persistent,"{}")
@@ -325,6 +324,54 @@ async def getPublicKey():
 
 def validateVP_blockchain():
     vc_data = request.json
+
+
+########################
+#SOCKET
+def send_to_socket_server(action, data=None, host='localhost', port=65433):
+    message = {"action": action, "data": data}
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((host, port))
+        s.sendall(json.dumps(message).encode())
+        response = s.recv(4096)
+    return json.loads(response.decode())
+
+@app.route('/issueVP', methods=['POST'])
+def issueVP():
+    vc_data = request.get_json()
+   
+    try:
+        response = send_to_socket_server("issue_vp", vc_data)
+       
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/richiediVP', methods=['GET'])
+def gestisciRichiestaVP():
+    try:
+        response = send_to_socket_server("richiedi_vp")
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/verificaRichiestaVP', methods=['GET'])
+def verificaRichiestaVP():
+    try:
+        response = send_to_socket_server("verifica_richiesta_vp")
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recuperachaiveprivata', methods=['POST'])
+def recuperaChiavePrivata():
+    data = request.get_json()
+    try:
+        response = send_to_socket_server("recupera_chiave_privata", data)
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 def main():
    # print(__doc__)
