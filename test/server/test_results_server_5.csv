@@ -1,0 +1,16 @@
+Thread Index,Operazione,Tempo (s),Successo
+1,Registrazione Server,1.2045261859893799,True
+0,Registrazione Server,1.2201287746429443,True
+2,Registrazione Server,1.236260175704956,True
+3,Registrazione Server,1.2549502849578857,True
+4,Registrazione Server,1.2893388271331787,True
+0,Autenticazione Server,0.8458383083343506,True
+1,Autenticazione Server,0.8540692329406738,True
+2,Autenticazione Server,0.8590617179870605,True
+1,Operazioni Totali,2.9605534076690674,True
+0,Operazioni Totali,2.9615516662597656,True
+3,Autenticazione Server,0.8542389869689941,True
+4,Autenticazione Server,0.8371176719665527,True
+2,Operazioni Totali,2.9906744956970215,True
+3,Operazioni Totali,3.0254836082458496,True
+4,Operazioni Totali,3.0386245250701904,True

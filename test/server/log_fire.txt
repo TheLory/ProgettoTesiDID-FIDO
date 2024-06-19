@@ -1,0 +1,27 @@
+[SERVER] Thread 0: Inizio registrazione
+[SERVER] Thread 1: Inizio registrazione
+[SERVER] Thread 4: Inizio registrazione
+[SERVER] Thread 3: Inizio registrazione
+[SERVER] Thread 2: Inizio registrazione
+[SERVER] Registrazione nella scheda 0 completata con successo.
+[SERVER] Thread 0: Inizio autenticazione
+[SERVER] Registrazione nella scheda 1 completata con successo.
+[SERVER] Thread 1: Inizio autenticazione
+[SERVER] Registrazione nella scheda 3 completata con successo.
+[SERVER] Thread 3: Inizio autenticazione
+[SERVER] Registrazione nella scheda 2 completata con successo.
+[SERVER] Thread 2: Inizio autenticazione
+[SERVER] Autenticazione nella scheda 0 completata con successo.
+[SERVER] Autenticazione nella scheda 1 completata con successo.
+[SERVER] Autenticazione nella scheda 3 completata con successo.
+[SERVER] Autenticazione nella scheda 2 completata con successo.
+Operazioni nella scheda 0 completate in 6.69 secondi.
+Operazioni nella scheda 1 completate in 6.89 secondi.
+Operazioni nella scheda 3 completate in 7.06 secondi.
+Operazioni nella scheda 2 completate in 7.17 secondi.
+Errore nell'handle dell'alert: Message: 
+
+[SERVER] Registrazione nella scheda 4 fallita.
+[SERVER] Thread 4: Inizio autenticazione
+[SERVER] Autenticazione nella scheda 4 completata con successo.
+Operazioni nella scheda 4 completate in 37.57 secondi.

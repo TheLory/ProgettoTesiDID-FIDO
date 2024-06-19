@@ -193,13 +193,13 @@ async def issueVP():
     global verifiablePresentation
     # Ottenere i dati della verifiable credential dalla richiesta JSON
     vc = request.json
-    
+    vcs = [vc for _ in range(1)]
     vp = {
         "@context": ["https://www.w3.org/2018/credentials/v1"],
-        "type": ["VerifiablePresentation"],
-        "verifiableCredential": [vc]
+        "type": ["VerifiablePresentation"],                                         
+       "verifiableCredential": vcs,
+     
     }
-
     verification_method = await didkit.key_to_verification_method("key",key)       
     options = {
         "proofPurpose": "authentication",

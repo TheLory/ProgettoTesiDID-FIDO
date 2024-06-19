@@ -183,7 +183,7 @@ async function get(options) {
   const response = await navigator.credentials.get(options);
   
   response.toJSON = () => getResponseToJSON(response);
-  console.log("PORCO IL SANTISSIMO")
+
 
   return response;
 }

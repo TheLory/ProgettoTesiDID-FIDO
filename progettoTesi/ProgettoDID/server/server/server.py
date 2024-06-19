@@ -224,9 +224,7 @@ def get_current_time():
     return datetime.now().replace(microsecond=0).isoformat() + "Z"
 issuer_name = 'issuer_server'
 def create_university_degree_vc(did,DIDUtente):
-    print("#############")
-    print(issuer_name)
-    print("#############")
+
     cred = {
         "@context": "https://www.w3.org/2018/credentials/v1",
         "id": "http://127.0.0.1:5001/universityDID",

@@ -1,0 +1,21 @@
+Thread Index,Operazione,Tempo (s),Successo
+3,Generazione VP,1.5376505851745605,True
+3,Operazioni Totali,2.720036029815674,True
+9,Generazione VP,1.6120593547821045,True
+4,Generazione VP,1.5884368419647217,True
+9,Operazioni Totali,2.828803300857544,True
+4,Operazioni Totali,2.8391668796539307,True
+8,Generazione VP,1.6488702297210693,True
+2,Generazione VP,1.650639295578003,True
+7,Generazione VP,1.6586523056030273,True
+8,Operazioni Totali,2.894287347793579,True
+2,Operazioni Totali,2.916558265686035,True
+1,Generazione VP,1.6929302215576172,True
+6,Generazione VP,1.685856580734253,True
+7,Operazioni Totali,2.9394030570983887,True
+1,Operazioni Totali,2.9982120990753174,True
+6,Operazioni Totali,2.9965105056762695,True
+0,Generazione VP,30.781816959381104,False
+5,Generazione VP,30.750856161117554,False
+0,Operazioni Totali,31.939476490020752,True
+5,Operazioni Totali,31.937625646591187,True

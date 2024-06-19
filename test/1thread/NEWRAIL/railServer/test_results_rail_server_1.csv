@@ -1,0 +1,3 @@
+Thread Index,Operazione,Tempo Response (s),Tempo Animation (HZ),Tempo Idle (s),Tempo Load (s),Successo
+0,Registrazione Server,0.13912439346313477,60.276679841897234,0.0,0.034,True
+0,Autenticazione Server,0.10982441902160645,60.52187717048842,0.0,0.021,True

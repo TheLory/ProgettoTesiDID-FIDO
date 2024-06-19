@@ -1,0 +1,103 @@
+[SERVER] Thread 4: Inizio registrazione[SERVER] Thread 3: Inizio registrazione
+
+[SERVER] Thread 0: Inizio registrazione
+[SERVER] Thread 2: Inizio registrazione
+[SERVER] Thread 1: Inizio registrazione
+[SERVER] Registrazione nella scheda 2 completata con successo.
+[SERVER] Thread 2: Inizio autenticazione
+[SERVER] Autenticazione nella scheda 2 completata con successo.
+Operazioni nella scheda 2 completate in 2.38 secondi.
+[SERVER] Errore nella registrazione scheda 4: Message: no such element: Unable to locate element: {"method":"css selector","selector":"[id="register"]"}
+  (Session info: chrome-headless-shell=125.0.6422.112); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
+Stacktrace:
+#0 0x5630799b4e3a <unknown>
+#1 0x56307969e45c <unknown>
+#2 0x5630796ea5b5 <unknown>
+#3 0x5630796ea671 <unknown>
+#4 0x56307972ef14 <unknown>
+#5 0x56307970d4dd <unknown>
+#6 0x56307972c2cc <unknown>
+#7 0x56307970d253 <unknown>
+#8 0x5630796dd1c7 <unknown>
+#9 0x5630796ddb3e <unknown>
+#10 0x56307997b27b <unknown>
+#11 0x56307997f327 <unknown>
+#12 0x563079967dae <unknown>
+#13 0x56307997fdf2 <unknown>
+#14 0x56307994c74f <unknown>
+#15 0x5630799a4128 <unknown>
+#16 0x5630799a42fb <unknown>
+#17 0x5630799b3f6c <unknown>
+#18 0x7f8efe0b1dbb <unknown>
+
+[SERVER] Thread 4: Inizio autenticazione
+[SERVER] Errore nella registrazione scheda 3: Message: no such element: Unable to locate element: {"method":"css selector","selector":"[id="register"]"}
+  (Session info: chrome-headless-shell=125.0.6422.112); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
+Stacktrace:
+#0 0x55c94873ce3a <unknown>
+#1 0x55c94842645c <unknown>
+#2 0x55c9484725b5 <unknown>
+#3 0x55c948472671 <unknown>
+#4 0x55c9484b6f14 <unknown>
+#5 0x55c9484954dd <unknown>
+#6 0x55c9484b42cc <unknown>
+#7 0x55c948495253 <unknown>
+#8 0x55c9484651c7 <unknown>
+#9 0x55c948465b3e <unknown>
+#10 0x55c94870327b <unknown>
+#11 0x55c948707327 <unknown>
+#12 0x55c9486efdae <unknown>
+#13 0x55c948707df2 <unknown>
+#14 0x55c9486d474f <unknown>
+#15 0x55c94872c128 <unknown>
+#16 0x55c94872c2fb <unknown>
+#17 0x55c94873bf6c <unknown>
+#18 0x7fbf869addbb <unknown>
+
+[SERVER] Thread 3: Inizio autenticazione
+[SERVER] Registrazione nella scheda 0 fallita.
+[SERVER] Thread 0: Inizio autenticazione
+Errore nell'handle dell'alert: Message: invalid argument: No dialog is showing
+  (Session info: chrome-headless-shell=125.0.6422.112)
+Stacktrace:
+#0 0x5560302aae3a <unknown>
+#1 0x55602ff9445c <unknown>
+#2 0x55602ff7aa7c <unknown>
+#3 0x55602ff791b8 <unknown>
+#4 0x55602ff7983a <unknown>
+#5 0x55602ff78451 <unknown>
+#6 0x55602ff849c3 <unknown>
+#7 0x55602ffb735f <unknown>
+#8 0x55603000353b <unknown>
+#9 0x55602ffb6b21 <unknown>
+#10 0x556030003253 <unknown>
+#11 0x55602ffd31c7 <unknown>
+#12 0x55602ffd3b3e <unknown>
+#13 0x55603027127b <unknown>
+#14 0x556030275327 <unknown>
+#15 0x55603025ddae <unknown>
+#16 0x556030275df2 <unknown>
+#17 0x55603024274f <unknown>
+#18 0x55603029a128 <unknown>
+#19 0x55603029a2fb <unknown>
+#20 0x5560302a9f6c <unknown>
+#21 0x7f191619adbb <unknown>
+
+[SERVER] Registrazione nella scheda 1 fallita.
+[SERVER] Thread 1: Inizio autenticazione
+Errore nell'handle dell'alert: Message: 
+
+[SERVER] Autenticazione nella scheda 3 fallita.
+Errore nell'handle dell'alert: Message: 
+
+[SERVER] Autenticazione nella scheda 4 fallita.
+Operazioni nella scheda 3 completate in 31.39 secondi.
+Operazioni nella scheda 4 completate in 31.39 secondi.
+Errore nell'handle dell'alert: Message: 
+
+[SERVER] Autenticazione nella scheda 0 fallita.
+Errore nell'handle dell'alert: Message: 
+
+[SERVER] Autenticazione nella scheda 1 fallita.
+Operazioni nella scheda 0 completate in 31.60 secondi.
+Operazioni nella scheda 1 completate in 31.60 secondi.

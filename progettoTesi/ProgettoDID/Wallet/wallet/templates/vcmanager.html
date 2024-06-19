@@ -50,13 +50,16 @@
     }
 
     async function start(vcJson) {
-    
-      const vc = JSON.parse(vcJson);
-      //invio richiesta al client per modificare il cvalore della richiestaVP
-      await inviaRichiestaVP();
 
+      //invio richiesta al client per modificare il cvalore della richiestaVP
+      const vc = JSON.parse(vcJson)
+      await inviaRichiestaVP();
+      var username = document.getElementById("usernameDisplay").innerText
+    
       let request = await fetch('/api/authenticate/begin', {
         method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username: username}),
       });
       if(!request.ok) {
         throw new Error('No credential available to authenticate!');
@@ -198,7 +201,21 @@ function downloadJSON(vp) {
 
   // Altre funzioni...
 </script>
+<script>
+  // Funzione per ottenere il valore di un parametro dalla query string
+  function getQueryParam(param) {
+      let urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+  }
 
+  // Esegue quando la pagina è completamente caricata
+  window.onload = function() {
+      let username = getQueryParam('username');
+      if (username) {
+          document.getElementById('usernameDisplay').textContent = username;
+      }
+  }
+</script>
 
 </head>
 <body>
@@ -207,7 +224,7 @@ function downloadJSON(vp) {
 
     <div class="container mt-5" >
       
-      <h3 class="mb-3">Il tuo DID</h3>
+      <h3 class="mb-3">Il tuo DID <span id="usernameDisplay"></span></h3>
         <div class="card mb-3">
             <div class="card-body">
                 <pre class="card-text">{{ did_content }}</pre>
@@ -227,7 +244,7 @@ function downloadJSON(vp) {
         <div class="card-body"> 
             <pre class="card-text">{{ vc | safe }}</pre>
         </div>
-        <button type="button" class="btn btn-secondary" data-vc='{{ vc }}' onclick="start(this.getAttribute('data-vc'))">Genera VP</button>
+        <button type="button" id="GeneraVP" class="btn btn-secondary" data-vc='{{ vc }}' onclick="start(this.getAttribute('data-vc'))">Genera VP</button>
       </div>
     {% endfor %}
           <!-- Sezione aggiunta per le Verifiable Presentations -->
@@ -237,7 +254,7 @@ function downloadJSON(vp) {
               <div class="card-body">
                   <pre class="card-text">{{ vp | safe}}</pre>
               </div>
-              <button type="button" class="btn btn-secondary" data-vp='{{ vp }}'  data-did='{{ did_content }}' onclick="validaVP(this.getAttribute('data-vp'),this.getAttribute('data-did'))">Valida VP</button>
+              <button type="button" id ="ValidaVp" class="btn btn-secondary" data-vp='{{ vp }}'  data-did='{{ did_content }}' onclick="validaVP(this.getAttribute('data-vp'),this.getAttribute('data-did'))">Valida VP</button>
               <br>
               <button type="button"  class="btn btn-secondary" data-vp='{{ vp }}' onclick="validaVP_blockchain(this.getAttribute('data-vp'))">Valida VP Su blockchain</button>   
               <br>
