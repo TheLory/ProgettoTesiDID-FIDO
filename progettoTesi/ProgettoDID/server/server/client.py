@@ -6,6 +6,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 import base64
+from datetime import datetime
+
 import json
 from jwcrypto import jwk
 from web3 import Web3
@@ -249,8 +251,80 @@ async def valida_chiave_pubblica():
         return {"Response": "le chiavi corrispondono"}
     else:
         return{"Response": "Le chiavi NON corrispondoo"}
+ 
         
+def pem_to_jwk(file_path):
+    with open(file_path, 'rb') as key_file:
+        private_key_pem = key_file.read()
 
+    private_key = serialization.load_pem_private_key(
+        private_key_pem,
+        password=None,
+        backend=default_backend()
+    )
+
+    # Assicurati che la chiave caricata sia effettivamente una chiave privata EC
+    if not isinstance(private_key, ec.EllipticCurvePrivateKey):
+        raise ValueError("La chiave fornita non è una chiave privata EC.")
+
+    # Ottieni i numeri sia della chiave privata che di quella pubblica
+    private_numbers = private_key.private_numbers()
+    public_numbers = private_numbers.public_numbers
+
+    # Converti in formato JWK includendo il parametro della chiave privata
+    jwk = {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": base64.urlsafe_b64encode(public_numbers.x.to_bytes(32, byteorder='big')).decode('utf-8').rstrip("="),
+        "y": base64.urlsafe_b64encode(public_numbers.y.to_bytes(32, byteorder='big')).decode('utf-8').rstrip("="),
+        "d": base64.urlsafe_b64encode(private_numbers.private_value.to_bytes(32, byteorder='big')).decode('utf-8').rstrip("="),
+        "alg": "ES256",
+        "use": "sig"
+    }
+
+    return json.dumps(jwk, indent=2)
+
+def get_current_time():
+    return datetime.now().replace(microsecond=0).isoformat() + "Z"
+issuer_name = 'issuer_server'
+
+def create_university_degree_vc(did,DIDUtente):
+
+    cred = {
+        "@context": "https://www.w3.org/2018/credentials/v1",
+        "id": "http://127.0.0.1:5001/universityDID",
+        "type": ["VerifiableCredential"],
+        "issuer": did,
+        "issuanceDate": get_current_time(),
+        "credentialSubject": {
+            "id": DIDUtente,
+        }
+    }
+
+    return cred
+@app.route("/api/issueVC",methods = ["POST"])
+async def issueVC():
+    data = request.get_json()
+    didUtente = data.get('did')
+    global verfiableCredentials
+    key_file = "server_private_key.pem"
+    key = pem_to_jwk(key_file)
+    verificationMethods = await didkit.key_to_verification_method("key",key)
+    #jwk = didkit.generate_ed25519_key()
+    did = didkit.key_to_did("key", key)
+    options = json.dumps ({
+         "proofPurpose": "assertionMethod",
+         "verificationMethod" : verificationMethods
+    })
+    cred = create_university_degree_vc(did,didUtente)  
+    verifiable_credential_signed = await didkit.issue_credential(
+        json.dumps(cred),
+        json.dumps({}),
+        key)
+
+    verfiableCredentials = verifiable_credential_signed
+ #   index = pubblica_vc_su_bc(verifiable_credential_signed)
+    return json.dumps(verifiable_credential_signed)
 
 @app.route('/validateVP', methods=['POST'])
 async def verify_vp():

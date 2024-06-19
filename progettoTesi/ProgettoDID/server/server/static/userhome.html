@@ -99,7 +99,7 @@
     // Funzione per gestire l'azione del pulsante di issuing
     async function issueVC() {
         try {
-    response = await fetch('/api/issueVC', {
+    response = await fetch('http://localhost:5005/api/issueVC', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
